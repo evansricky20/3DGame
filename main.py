@@ -218,8 +218,10 @@ def main():
    display = (1000,600)
    pygame.display.set_mode(display, DOUBLEBUF|OPENGL)
 
+   glMatrixMode(GL_PROJECTION)
    gluPerspective(90, (display[0]/display[1]), 0.1, 50.0)
-   gluLookAt(0.0, 5.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0)
+   glMatrixMode(GL_MODELVIEW)
+   #gluLookAt(0.0, 5.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0)
 
    # Flags to get status of bob
    upFlag = 0
@@ -229,15 +231,16 @@ def main():
    spaceFlag = 0
    ctrlFlag = 0
    activeObjectIndex = 0
+   #activeObject = objectList[activeObjectIndex]
 
    ball = Sphere("ball1", 1, 3, 1, 0)
    ball2 = Sphere("ball2", 2, -3, 1, 0)
    #ball3 = Sphere("ball3", 1, 4, 2, 0)
+   bob = Character("bob", 0, 2, -5)
 
    activeObject = objectList[activeObjectIndex]
-   #print(objectList:[0].name)
-
-   bob = Character("bob", 0, 2, -5)
+   #print(objectList[0].name)
+   print(activeObject.x_cord)
 
    while True:
       for event in pygame.event.get():
@@ -306,21 +309,28 @@ def main():
                #print("CTRL released")
                ctrlFlag  = 0
 
+      # camera_offset = [0, 2, -5]
+      # camera_pos = [activeObject.x_cord + camera_offset[0],
+      #               activeObject.y_cord + camera_offset[1],
+      #               activeObject.z_cord + camera_offset[2]]
+
+
+      glLoadIdentity()
+      gluLookAt(activeObject.x_cord, activeObject.y_cord+10, activeObject.z_cord+5,
+                activeObject.x_cord, activeObject.y_cord, activeObject.z_cord,
+                0, 1, 0)
 
       time = pygame.time.get_ticks() / 1000  # returns time in miliseconds / 1000 to get seconds
 
-      #bob.time = time
       for i in objectList:
          if i.name == activeObject.name:
+            glPushMatrix()
             i.move(leftFlag, rightFlag, upFlag, downFlag, spaceFlag, ctrlFlag)
+            glPopMatrix()
 
       for i in objectList:
          if i.name == "ball3":
             i.orbit(3, 1, time)
-
-      #print(time)
-      #sinTest = np.sin(time) # test sin
-      #print(sinTest)
 
       glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
       glEnable(GL_DEPTH_TEST)
@@ -339,11 +349,6 @@ def main():
       glEnd()
       glPopMatrix()
 
-      #glColor3f(1, 0, 0)
-      #glPushMatrix()
-      #ball.draw()
-      #ball.updatePos(move_x, move_y, move_z)
-      #glPopMatrix()
 
       for i in objectList:
          glPushMatrix()
