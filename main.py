@@ -314,6 +314,12 @@ def main():
       #               activeObject.y_cord + camera_offset[1],
       #               activeObject.z_cord + camera_offset[2]]
 
+      pygame.mouse.get_pos()
+      # print(pygame.mouse.get_pos())
+      mouse_movement = pygame.mouse.get_rel()
+      mouse_x_movement = mouse_movement[0]
+      mouse_y_movement = mouse_movement[1]
+
 
       glLoadIdentity()
       gluLookAt(activeObject.x_cord, activeObject.y_cord+10, activeObject.z_cord+5,
