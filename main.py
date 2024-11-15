@@ -7,7 +7,7 @@ from pygame.locals import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 
-sphereList = []
+objectList = []
 
 class Sphere:
    def __init__(self, name, radius, x_cord, y_cord, z_cord):
@@ -16,12 +16,14 @@ class Sphere:
       self.x_cord = x_cord
       self.y_cord = y_cord
       self.z_cord = z_cord
-      sphereList.append(self)
+      self.time = 0
+      objectList.append(self)
       self.red = random.uniform(0, 1)
       self.green = random.uniform(0, 1)
       self.blue = random.uniform(0, 1)
 
-   def draw(self):
+   def draw(self, time):
+      self.time = time
       glColor3f(self.red, self.green, self.blue)
       glPushMatrix()
       glTranslatef(self.x_cord, self.y_cord, self.z_cord)
@@ -43,6 +45,164 @@ class Sphere:
          self.y_cord = self.y_cord + 0.05
       if ctrlFlag == 1:
          self.y_cord = self.y_cord - 0.05
+
+   def orbit(self, radius, speed):
+      self.x_cord = radius * np.cos(speed * self.time)
+      self.z_cord = radius * np.sin(speed * self.time)
+
+
+class Cube:
+   def __init__(self, name, height, width, depth):
+      self.name = name
+
+      self.height = height
+      self.width = width
+      self.depth = depth
+
+   def draw(self):
+
+      glPushMatrix()
+      glScalef(self.width, self.height, self.depth)
+
+      glBegin(GL_QUADS)
+
+      glVertex3f(-0.5, -0.5, 0.5)
+      glVertex3f(0.5, -0.5, 0.5)
+      glVertex3f(0.5, 0.5, 0.5)
+      glVertex3f(-0.5, 0.5, 0.5)
+
+      glVertex3f(-0.5, -0.5, -0.5)
+      glVertex3f(-0.5, 0.5, -0.5)
+      glVertex3f(0.5, 0.5, -0.5)
+      glVertex3f(0.5, -0.5, -0.5)
+
+      glVertex3f(-0.5, -0.5, -0.5)
+      glVertex3f(-0.5, -0.5, 0.5)
+      glVertex3f(-0.5, 0.5, 0.5)
+      glVertex3f(-0.5, 0.5, -0.5)
+
+      glVertex3f(0.5, -0.5, -0.5)
+      glVertex3f(0.5, 0.5, -0.5)
+      glVertex3f(0.5, 0.5, 0.5)
+      glVertex3f(0.5, -0.5, 0.5)
+
+      glVertex3f(-0.5, 0.5, -0.5)
+      glVertex3f(0.5, 0.5, -0.5)
+      glVertex3f(0.5, 0.5, 0.5)
+      glVertex3f(-0.5, 0.5, 0.5)
+
+      glVertex3f(-0.5, -0.5, -0.5)
+      glVertex3f(-0.5, -0.5, 0.5)
+      glVertex3f(0.5, -0.5, 0.5)
+      glVertex3f(0.5, -0.5, -0.5)
+
+      glEnd()
+
+      glPopMatrix()
+
+
+class Character:
+   def __init__(self, name, x_cord, y_cord, z_cord):
+      self.name = name
+      self.x_cord = x_cord
+      self.y_cord = y_cord
+      self.z_cord = z_cord
+      self.time = 0
+      self.isMoving = 0
+      objectList.append(self)
+
+   # Draw function to render character
+   #
+   # Uses Cube class to render body parts
+   def draw(self, time):
+      self.time = time
+      glPushMatrix()
+      glTranslatef(self.x_cord, self.y_cord, self.z_cord)
+      # Creating head of character
+      # Putting it at y=1 to go above body
+      glColor3f(0.9, 0.1, 0.1)
+      glPushMatrix()
+      glTranslatef(0, 1, 0)
+      head = Cube("head", 0.5, 0.5, 0.5)
+      head.draw()
+      glPopMatrix()
+
+      # Creating body of character
+      # Putting it at y=0 to act as center
+      glColor3f(0.1, 0.9, 0.1)
+      glPushMatrix()
+      glTranslatef(0, 0, 0)
+      body = Cube("body", 1.5, 1, 0.5)
+      body.draw()
+      glPopMatrix()
+
+      # Creating left arm of character
+      # Putting at x=-0.8 and y = 0 to go to left of body
+      glColor3f(0.1, 0.1, 0.9)
+      glPushMatrix()
+      glTranslatef(-0.8, 0, 0)
+      if self.isMoving == 0:
+         glRotatef(np.sin(self.time) * 5, 0, 0, 1)
+      else:
+         glRotatef(np.sin(self.time * 10) * 20, 1, 0, 0)
+      left_arm = Cube("left_arm", 1, 0.5, 0.5)
+      left_arm.draw()
+      glPopMatrix()
+
+      # Creating right arm of character
+      # Putting at x=0.8 and y = 0 to go to right of body
+      glColor3f(0.1, 0.1, 0.9)
+      glPushMatrix()
+      glTranslatef(0.8, 0, 0)
+      if self.isMoving == 0:
+         glRotatef(-(np.sin(self.time)) * 5, 0, 0, 1)
+      else:
+         #print("Bob is moving")
+         glRotatef(-(np.sin(self.time * 10)) * 20, 1, 0, 0)
+      right_arm = Cube("right_arm", 1, 0.5, 0.5)
+      right_arm.draw()
+      glPopMatrix()
+
+      # Creating left leg of character
+      # Putting at x = -0.3 and y = -1.3 to go left and below body
+      glColor3d(0.9, 0.1, 0.9)
+      glPushMatrix()
+      glTranslatef(-0.3, -1.3, 0)
+      if self.isMoving == 1:
+         glRotatef(-(np.sin(self.time * 10)) * 20, 1, 0, 0)
+      left_leg = Cube("left_leg", 1, 0.5, 0.5)
+      left_leg.draw()
+      glPopMatrix()
+
+      # Creating right leg of character
+      # Putting at x = 0.3 and y = -1.3 to go right and below body
+      glColor3d(0.9, 0.1, 0.9)
+      glPushMatrix()
+      glTranslatef(0.3, -1.3, 0)
+      if self.isMoving == 1:
+         glRotatef(np.sin(self.time * 10) * 20, 1, 0, 0)
+      right_leg = Cube("right_leg", 1, 0.5, 0.5)
+      right_leg.draw()
+      glPopMatrix()
+
+      glPopMatrix()
+
+
+   def move(self, leftFlag, rightFlag, upFlag, downFlag, spaceFlag, ctrlFlag):
+      self.isMoving = leftFlag or rightFlag or upFlag or downFlag
+      if leftFlag == 1:  # if left key bind is active, then subtract from characters x coordiante to move left
+         self.x_cord = self.x_cord - 0.05
+      if rightFlag == 1:  # Opposite if moving right
+         self.x_cord = self.x_cord + 0.05
+      if upFlag == 1:
+         self.z_cord = self.z_cord - 0.05
+      if downFlag == 1:
+         self.z_cord = self.z_cord + 0.05
+      if spaceFlag == 1:
+         self.y_cord = self.y_cord + 0.05
+      if ctrlFlag == 1:
+         self.y_cord = self.y_cord - 0.05
+
 
 
 def createPlanet():
@@ -68,13 +228,16 @@ def main():
    rightFlag  = 0
    spaceFlag = 0
    ctrlFlag = 0
-   activePlanetIndex = 0
+   activeObjectIndex = 0
 
-   ball = Sphere("ball1", 1, 2, 2, 0)
-   ball2 = Sphere("ball2", 2, 1, 1, 0)
+   ball = Sphere("ball1", 1, 3, 1, 0)
+   ball2 = Sphere("ball2", 2, -3, 1, 0)
+   #ball3 = Sphere("ball3", 1, 4, 2, 0)
 
-   activePlanet = sphereList[activePlanetIndex]
-   #print(sphereList[0].name)
+   activeObject = objectList[activeObjectIndex]
+   #print(objectList:[0].name)
+
+   bob = Character("bob", 0, 2, -5)
 
    while True:
       for event in pygame.event.get():
@@ -105,20 +268,20 @@ def main():
                ctrlFlag  = 1
             if event.key == pygame.K_COMMA:
                print("Prev pressed")
-               if activePlanetIndex == 0:
+               if activeObjectIndex == 0:
                   print("Current index 0, cannot go out of range.")
                else:
-                  activePlanetIndex = activePlanetIndex - 1
-                  activePlanet = sphereList[activePlanetIndex]
-               print(activePlanet.name)
+                  activeObjectIndex = activeObjectIndex - 1
+                  activeObject = objectList[activeObjectIndex]
+               print(activeObject.name)
             if event.key == pygame.K_PERIOD:
                print("Next pressed")
-               if activePlanetIndex == len(sphereList)-1:
-                  print(f"Current index is {activePlanetIndex}, cannot go out of range.")
+               if activeObjectIndex == len(objectList)-1:
+                  print(f"Current index is {activeObjectIndex}, cannot go out of range.")
                else:
-                  activePlanetIndex = activePlanetIndex + 1
-                  activePlanet = sphereList[activePlanetIndex]
-               print(activePlanet.name)
+                  activeObjectIndex = activeObjectIndex + 1
+                  activeObject = objectList[activeObjectIndex]
+               print(activeObject.name)
 
 
          # Using pygame keys to find keys released after being pressed
@@ -143,12 +306,18 @@ def main():
                #print("CTRL released")
                ctrlFlag  = 0
 
-      #ball.move(leftFlag, rightFlag, upFlag, downFlag, spaceFlag)
-      for i in sphereList:
-         if i.name == activePlanet.name:
+
+      time = pygame.time.get_ticks() / 1000  # returns time in miliseconds / 1000 to get seconds
+
+      #bob.time = time
+      for i in objectList:
+         if i.name == activeObject.name:
             i.move(leftFlag, rightFlag, upFlag, downFlag, spaceFlag, ctrlFlag)
 
-      #time = pygame.time.get_ticks()/1000 # returns time in miliseconds / 1000 to get seconds
+      for i in objectList:
+         if i.name == "ball3":
+            i.orbit(3, 1, time)
+
       #print(time)
       #sinTest = np.sin(time) # test sin
       #print(sinTest)
@@ -176,10 +345,11 @@ def main():
       #ball.updatePos(move_x, move_y, move_z)
       #glPopMatrix()
 
-      for i in sphereList:
+      for i in objectList:
          glPushMatrix()
-         i.draw()
+         i.draw(time)
          glPopMatrix()
+
 
       pygame.display.flip()
       pygame.time.wait(10)
