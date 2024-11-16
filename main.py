@@ -18,6 +18,8 @@ class Sphere:
         self.y_cord = y_cord
         self.z_cord = z_cord
         self.time = 0
+        self.speed = 0.05
+        self.isMoving = 0
         objectList.append(self)
         self.red = random.uniform(0, 1)
         self.green = random.uniform(0, 1)
@@ -32,19 +34,28 @@ class Sphere:
         gluSphere(sphere, self.radius, 32, 32)
         glPopMatrix()
 
-    def move(self, leftFlag, rightFlag, upFlag, downFlag, spaceFlag, ctrlFlag):
+    def move(self, leftFlag, rightFlag, upFlag, downFlag, spaceFlag, ctrlFlag, shiftFlag):
+        self.isMoving = leftFlag, rightFlag, upFlag, downFlag
+
+        speed_mult = 1
+        if shiftFlag == 1:
+            speed_mult = 3
+        else:
+            pass
+        objSpeed = self.speed * speed_mult
+
         if leftFlag == 1:  # if left key bind is active, then subtract from characters x coordiante to move left
-            self.x_cord = self.x_cord - 0.05
+            self.x_cord = self.x_cord - objSpeed
         if rightFlag == 1:  # Opposite if moving right
-            self.x_cord = self.x_cord + 0.05
+            self.x_cord = self.x_cord + objSpeed
         if upFlag == 1:
-            self.z_cord = self.z_cord - 0.05
+            self.z_cord = self.z_cord - objSpeed
         if downFlag == 1:
-            self.z_cord = self.z_cord + 0.05
+            self.z_cord = self.z_cord + objSpeed
         if spaceFlag == 1:
-            self.y_cord = self.y_cord + 0.05
+            self.y_cord = self.y_cord + objSpeed
         if ctrlFlag == 1:
-            self.y_cord = self.y_cord - 0.05
+            self.y_cord = self.y_cord - objSpeed
 
     def orbit(self, radius, speed):
         self.x_cord = radius * np.cos(speed * self.time)
@@ -102,12 +113,18 @@ class Cube:
 
 class Character:
     def __init__(self, name, x_cord, y_cord, z_cord):
+        self.leftFlag = 0
+        self.rightFlag = 0
+        self.upFlag = 0
+        self.downFlag = 0
         self.name = name
         self.x_cord = x_cord
         self.y_cord = y_cord
         self.z_cord = z_cord
         self.time = 0
         self.isMoving = 0
+        self.direction = 0
+        self.speed = 1
         objectList.append(self)
 
     # Draw function to render character
@@ -117,8 +134,7 @@ class Character:
         self.time = time
         glPushMatrix()
         glTranslatef(self.x_cord, self.y_cord, self.z_cord)
-        # if leftFlag == 1:
-        #     glRotatef(90, 0, 1, 0)
+        glRotatef(self.direction, 0, 1, 0)
         # Creating head of character
         # Putting it at y=1 to go above body
         glColor3f(0.9, 0.1, 0.1)
@@ -188,20 +204,25 @@ class Character:
 
         glPopMatrix()
 
-    def move(self, leftFlag, rightFlag, upFlag, downFlag, spaceFlag, ctrlFlag):
-        self.isMoving = leftFlag or rightFlag or upFlag or downFlag
+    def move(self, leftFlag, rightFlag, upFlag, downFlag, spaceFlag, ctrlFlag, shiftFlag):
+        speed_mult = 2
+        self.isMoving = leftFlag, rightFlag, upFlag, downFlag
+        if shiftFlag == 1:
+            self.speed = self.speed * speed_mult
         if leftFlag == 1:  # if left key bind is active, then subtract from characters x coordiante to move left
-            self.x_cord = self.x_cord - 0.05
+            self.x_cord = self.x_cord - self.speed
         if rightFlag == 1:  # Opposite if moving right
-            self.x_cord = self.x_cord + 0.05
+            self.x_cord = self.x_cord + self.speed
         if upFlag == 1:
-            self.z_cord = self.z_cord - 0.05
+            self.z_cord = self.z_cord - self.speed
         if downFlag == 1:
-            self.z_cord = self.z_cord + 0.05
+            self.z_cord = self.z_cord + self.speed
         if spaceFlag == 1:
-            self.y_cord = self.y_cord + 0.05
+            self.y_cord = self.y_cord + self.speed
         if ctrlFlag == 1:
-            self.y_cord = self.y_cord - 0.05
+            self.y_cord = self.y_cord - self.speed
+
+
 
 
 def createPlanet():
@@ -228,6 +249,7 @@ def main():
     rightFlag = 0
     spaceFlag = 0
     ctrlFlag = 0
+    shiftFlag = 0
     activeObjectIndex = 0
     # activeObject = objectList[activeObjectIndex]
     yaw = 0
@@ -269,6 +291,9 @@ def main():
                 if event.key == pygame.K_LCTRL:
                     # print("CTRL pressed")
                     ctrlFlag = 1
+                if event.key == pygame.K_LSHIFT:
+                    # print("SHIFT pressed")
+                    shiftFlag = 1
                 if event.key == pygame.K_COMMA:
                     print("Prev pressed")
                     if activeObjectIndex == 0:
@@ -307,6 +332,9 @@ def main():
                 if event.key == pygame.K_LCTRL:
                     # print("CTRL released")
                     ctrlFlag = 0
+                if event.key == pygame.K_LSHIFT:
+                    # print("SHIFT released")
+                    shiftFlag = 0
 
 
         glLoadIdentity()
@@ -322,7 +350,7 @@ def main():
         for i in objectList:
             if i.name == activeObject.name:
                 glPushMatrix()
-                i.move(leftFlag, rightFlag, upFlag, downFlag, spaceFlag, ctrlFlag)
+                i.move(leftFlag, rightFlag, upFlag, downFlag, spaceFlag, ctrlFlag, shiftFlag)
                 glPopMatrix()
 
         for i in objectList:
@@ -336,7 +364,7 @@ def main():
         glColor3f(0.2, 0.5, 0.2)
         glPushMatrix()
         glTranslatef(0, 0, 0)
-        glScalef(20, 0.1, 20)
+        glScalef(200, 0.1, 200)
 
         glBegin(GL_QUADS)
         glVertex3f(-1, 0, -1)
