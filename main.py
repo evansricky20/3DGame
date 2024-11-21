@@ -12,6 +12,7 @@ objectList = []
 
 class Sphere:
     def __init__(self, name, radius, x_cord, y_cord, z_cord):
+        self.exploded = 0
         self.name = name
         self.radius = radius
         self.x_cord = x_cord
@@ -157,7 +158,11 @@ class Character:
         # Putting it at y=0 to act as center
         glColor3f(0.1, 0.9, 0.1)
         glPushMatrix()
-        glTranslatef(0, 0, 0)
+        if self.exploded == 0:
+            glTranslatef(0, 0, 0)
+        elif self.exploded == 1:
+            glTranslatef(0, -1, 0)
+            glRotate(90, 1, 0, 0)
         body = Cube("body", 1.5, 1, 0.5)
         body.draw()
         glPopMatrix()
@@ -166,7 +171,13 @@ class Character:
         # Putting at x=-0.8 and y = 0 to go to left of body
         glColor3f(0.1, 0.1, 0.9)
         glPushMatrix()
-        glTranslatef(-0.8, 0, 0)
+        if self.exploded == 0:
+            glTranslatef(-0.8, 0, 0)
+        elif self.exploded == 1:
+            #print(time)
+            explodeRate = 0.8 + ((time - self.explodedTime) * 40)
+            glTranslatef(-explodeRate, 0, 0)
+
         if self.isMoving == 0:
             glRotatef(np.sin(self.time) * 5, 0, 0, 1)
         else:
@@ -179,7 +190,13 @@ class Character:
         # Putting at x=0.8 and y = 0 to go to right of body
         glColor3f(0.1, 0.1, 0.9)
         glPushMatrix()
-        glTranslatef(0.8, 0, 0)
+        if self.exploded == 0:
+            glTranslatef(0.8, 0, 0)
+        elif self.exploded == 1:
+            # print(time)
+            explodeRate = 0.8 + ((time - self.explodedTime) * 40)
+            glTranslatef(explodeRate, 0, 0)
+
         if self.isMoving == 0:
             glRotatef(-(np.sin(self.time)) * 5, 0, 0, 1)
         else:
@@ -193,7 +210,13 @@ class Character:
         # Putting at x = -0.3 and y = -1.3 to go left and below body
         glColor3d(0.9, 0.1, 0.9)
         glPushMatrix()
-        glTranslatef(-0.3, -1.3, 0)
+        if self.exploded == 0:
+            glTranslatef(-0.3, -1.3, 0)
+        elif self.exploded == 1:
+            #print(time)
+            explodeRate = 0.3 + ((time - self.explodedTime) * 40)
+            glTranslatef(-explodeRate, -1.3, 0)
+
         if self.isMoving == 1:
             glRotatef(-(np.sin(self.time * 10)) * 20, 1, 0, 0)
         left_leg = Cube("left_leg", 1, 0.5, 0.5)
@@ -204,7 +227,13 @@ class Character:
         # Putting at x = 0.3 and y = -1.3 to go right and below body
         glColor3d(0.9, 0.1, 0.9)
         glPushMatrix()
-        glTranslatef(0.3, -1.3, 0)
+        if self.exploded == 0:
+            glTranslatef(0.3, -1.3, 0)
+        elif self.exploded == 1:
+            # print(time)
+            explodeRate = 0.3 + ((time - self.explodedTime) * 40)
+            glTranslatef(explodeRate, -1.3, 0)
+
         if self.isMoving == 1:
             glRotatef(np.sin(self.time * 10) * 20, 1, 0, 0)
         right_leg = Cube("right_leg", 1, 0.5, 0.5)
@@ -374,7 +403,11 @@ def main():
         for i in objectList:
             if i.name == activeObject.name:
                 glPushMatrix()
-                i.move(leftFlag, rightFlag, upFlag, downFlag, spaceFlag, ctrlFlag, shiftFlag)
+                if i.exploded == 0:
+                    i.move(leftFlag, rightFlag, upFlag, downFlag, spaceFlag, ctrlFlag, shiftFlag)
+                else:
+                    pass
+
                 glPopMatrix()
 
                 if explodeFlag == 1:
