@@ -35,7 +35,7 @@ class Sphere:
         glPopMatrix()
 
     def move(self, leftFlag, rightFlag, upFlag, downFlag, spaceFlag, ctrlFlag, shiftFlag):
-        self.isMoving = leftFlag, rightFlag, upFlag, downFlag
+        self.isMoving = leftFlag or rightFlag or upFlag or downFlag
 
         speed_mult = 1
         if shiftFlag == 1:
@@ -113,6 +113,8 @@ class Cube:
 
 class Character:
     def __init__(self, name, x_cord, y_cord, z_cord):
+        self.exploded = 0
+        self.explodedTime = 0
         self.leftFlag = 0
         self.rightFlag = 0
         self.upFlag = 0
@@ -124,7 +126,7 @@ class Character:
         self.time = 0
         self.isMoving = 0
         self.direction = 0
-        self.speed = 1
+        self.speed = 0.05
         objectList.append(self)
 
     # Draw function to render character
@@ -135,11 +137,18 @@ class Character:
         glPushMatrix()
         glTranslatef(self.x_cord, self.y_cord, self.z_cord)
         glRotatef(self.direction, 0, 1, 0)
+
         # Creating head of character
         # Putting it at y=1 to go above body
         glColor3f(0.9, 0.1, 0.1)
         glPushMatrix()
-        glTranslatef(0, 1, 0)
+        if self.exploded == 0:
+            glTranslatef(0, 1, 0)
+        elif self.exploded == 1:
+            #print(time)
+            explodeRate = 1 + ((time - self.explodedTime) * 40)
+            glTranslatef(0, explodeRate, 0)
+
         head = Cube("head", 0.5, 0.5, 0.5)
         head.draw()
         glPopMatrix()
@@ -205,22 +214,31 @@ class Character:
         glPopMatrix()
 
     def move(self, leftFlag, rightFlag, upFlag, downFlag, spaceFlag, ctrlFlag, shiftFlag):
-        speed_mult = 2
-        self.isMoving = leftFlag, rightFlag, upFlag, downFlag
+        self.isMoving = leftFlag or rightFlag or upFlag or downFlag
+
+        speed_mult = 1
         if shiftFlag == 1:
-            self.speed = self.speed * speed_mult
+            speed_mult = 3
+        else:
+            pass
+        objSpeed = self.speed * speed_mult
+
         if leftFlag == 1:  # if left key bind is active, then subtract from characters x coordiante to move left
-            self.x_cord = self.x_cord - self.speed
+            self.x_cord = self.x_cord - objSpeed
         if rightFlag == 1:  # Opposite if moving right
-            self.x_cord = self.x_cord + self.speed
+            self.x_cord = self.x_cord + objSpeed
         if upFlag == 1:
-            self.z_cord = self.z_cord - self.speed
+            self.z_cord = self.z_cord - objSpeed
         if downFlag == 1:
-            self.z_cord = self.z_cord + self.speed
+            self.z_cord = self.z_cord + objSpeed
         if spaceFlag == 1:
-            self.y_cord = self.y_cord + self.speed
+            self.y_cord = self.y_cord + objSpeed
         if ctrlFlag == 1:
-            self.y_cord = self.y_cord - self.speed
+            self.y_cord = self.y_cord - objSpeed
+
+    def explode(self):
+        self.exploded = 1
+        self.explodedTime = self.time
 
 
 
@@ -252,8 +270,7 @@ def main():
     shiftFlag = 0
     activeObjectIndex = 0
     # activeObject = objectList[activeObjectIndex]
-    yaw = 0
-    pitch = 0
+    explodeFlag = 0
 
     ball = Sphere("ball1", 1, 3, 1, 0)
     ball2 = Sphere("ball2", 2, -3, 1, 0)
@@ -273,7 +290,7 @@ def main():
             # Using pygame keys to find keys being pressed
             # If specified key is pressed, its flag is set
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT or event.key == pygame.K_a:
+                if event.key == pygame.K_a:
                     # print("Left pressed")
                     leftFlag = 1
                 if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
@@ -310,11 +327,15 @@ def main():
                         activeObjectIndex = activeObjectIndex + 1
                         activeObject = objectList[activeObjectIndex]
                     print(activeObject.name)
+                if event.key == pygame.K_LEFT:
+                    print("Left cam pressed")
+                if event.key == pygame.K_e:
+                    explodeFlag = 1
 
             # Using pygame keys to find keys released after being pressed
             # If specified key is released its flag is reset
             if event.type == pygame.KEYUP:
-                if event.key == pygame.K_LEFT or event.key == pygame.K_a:
+                if event.key == pygame.K_a:
                     # print("Left released")
                     leftFlag = 0
                 if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
@@ -335,15 +356,18 @@ def main():
                 if event.key == pygame.K_LSHIFT:
                     # print("SHIFT released")
                     shiftFlag = 0
+                if event.key == pygame.K_e:
+                    explodeFlag = 0
+
 
 
         glLoadIdentity()
-        # gluLookAt(activeObject.x_cord, activeObject.y_cord + 5, activeObject.z_cord + 5,
-        #           activeObject.x_cord, activeObject.y_cord, activeObject.z_cord,
-        #           0, 1, 0)
-        gluLookAt(0, 10, 10,
+        gluLookAt(activeObject.x_cord, activeObject.y_cord + 5, activeObject.z_cord + 5,
                   activeObject.x_cord, activeObject.y_cord, activeObject.z_cord,
                   0, 1, 0)
+        # gluLookAt(0, 10, 10,
+        #           activeObject.x_cord, activeObject.y_cord, activeObject.z_cord,
+        #           0, 1, 0)
 
         time = pygame.time.get_ticks() / 1000  # returns time in miliseconds / 1000 to get seconds
 
@@ -352,6 +376,9 @@ def main():
                 glPushMatrix()
                 i.move(leftFlag, rightFlag, upFlag, downFlag, spaceFlag, ctrlFlag, shiftFlag)
                 glPopMatrix()
+
+                if explodeFlag == 1:
+                    i.explode()
 
         for i in objectList:
             if i.name == "ball3":
