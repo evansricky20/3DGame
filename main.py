@@ -304,14 +304,15 @@ def main():
     activeObjectIndex = 0
     # activeObject = objectList[activeObjectIndex]
     explodeFlag = 0
+    bobNum = 10
 
     pastObjectList = []
 
-    ball = Sphere("ball1", 1, 3, 1, 0)
-    ball2 = Sphere("ball2", 2, -3, 1, 0)
+    #ball = Sphere("ball1", 1, 3, 1, 0)
+    #ball2 = Sphere("ball2", 2, -3, 1, 0)
     # ball3 = Sphere("ball3", 1, 4, 2, 0)
-    bob = Character("bob", 3, 2, -5)
-    bob2 = Character("bob2", -3, 2, -5)
+    bob = Character("bob", 0, 2, 0)
+    #bob2 = Character("bob2", -3, 2, -5)
 
     activeObject = objectList[activeObjectIndex]
     # print(objectList[0].name)
@@ -369,6 +370,9 @@ def main():
                     print("Left cam pressed")
                 if event.key == pygame.K_e:
                     explodeFlag = 1
+                if event.key == pygame.K_1:
+                    newChar = Character(f"bob{bobNum}", random.randint(-5, 5), 2, random.randint(-5,5))
+                    bobNum = bobNum + 1
 
             # Using pygame keys to find keys released after being pressed
             # If specified key is released its flag is reset
@@ -400,34 +404,53 @@ def main():
 
 
         glLoadIdentity()
-        gluLookAt(activeObject.x_cord, activeObject.y_cord + 5, activeObject.z_cord + 5,
-                  activeObject.x_cord, activeObject.y_cord, activeObject.z_cord,
-                  0, 1, 0)
-        # gluLookAt(0, 10, 10,
+        # gluLookAt(activeObject.x_cord, activeObject.y_cord + 5, activeObject.z_cord + 5,
         #           activeObject.x_cord, activeObject.y_cord, activeObject.z_cord,
         #           0, 1, 0)
+        gluLookAt(0, 10, 10,
+                  activeObject.x_cord, activeObject.y_cord, activeObject.z_cord,
+                  0, 1, 0)
 
         time = pygame.time.get_ticks() / 1000  # returns time in miliseconds / 1000 to get seconds
 
-        for i in objectList:
+        for index, i in enumerate(objectList):
             if i.name == activeObject.name:
                 glPushMatrix()
                 if i.exploded == 0:
                     i.move(leftFlag, rightFlag, upFlag, downFlag, spaceFlag, ctrlFlag, shiftFlag)
                 else:
-                    pastObjectList.append(i) # If an object is exploded, add it to the pastObjectList for further rendering
-                    objectList.remove(i) # remove from object list to prevent from switching back to character
+                    pastObjectList.append(i)  # Add to pastObjectList
+                    objectList.remove(i)  # Remove from objectList
 
                     activeObjectIndex = len(objectList) - 1
-
                 glPopMatrix()
 
                 if explodeFlag == 1:
                     i.explode()
 
-        for i in objectList:
-            if i.name == "ball3":
-                i.orbit(3, 1, time)
+            for j in range(index + 1, len(objectList)):
+                nextObj = objectList[j]
+                range_x = range(i.x_cord - 0.5, i.x_cord + 0.5)
+                range_y = range(i.y_cord - 0.5, i.y_cord + 0.5)
+                range_z = range(i.z_cord - 0.5, i.z_cord + 0.5)
+                # Check if the coordinates match
+                if nextObj.x_cord in range_x and nextObj.y_cord in range_y and nextObj.z_cord in range_z:
+                    print("collision")
+
+        # check coordinates of every object
+        # for i in objectList:
+        #     print(f"Object\nX: {i.x_cord}\nY: {i.y_cord}\nZ: {i.z_cord}\n\n")
+
+        # for i in range(len(objectList)):
+        #     for j in range(i + 1, len(objectList)):
+        #         object1 = objectList[i]
+        #         object2 = objectList[j]
+        #
+        #         if object1.x_cord == object2.x_cord and object1.y_cord == object2.y_cord and object1.z_cord == object2.z_cord:
+        #             print("Collision")
+
+
+
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         glEnable(GL_DEPTH_TEST)
