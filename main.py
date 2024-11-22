@@ -9,9 +9,9 @@ from OpenGL.GLU import *
 
 objectList = []
 
-
 class Sphere:
     def __init__(self, name, radius, x_cord, y_cord, z_cord):
+        self.explodedTime = 0
         self.exploded = 0
         self.name = name
         self.radius = radius
@@ -61,6 +61,10 @@ class Sphere:
     def orbit(self, radius, speed):
         self.x_cord = radius * np.cos(speed * self.time)
         self.z_cord = radius * np.sin(speed * self.time)
+
+    def explode(self):
+        self.exploded = 1
+        self.explodedTime = self.time
 
 
 class Cube:
@@ -301,10 +305,13 @@ def main():
     # activeObject = objectList[activeObjectIndex]
     explodeFlag = 0
 
+    pastObjectList = []
+
     ball = Sphere("ball1", 1, 3, 1, 0)
     ball2 = Sphere("ball2", 2, -3, 1, 0)
     # ball3 = Sphere("ball3", 1, 4, 2, 0)
-    bob = Character("bob", 0, 2, -5)
+    bob = Character("bob", 3, 2, -5)
+    bob2 = Character("bob2", -3, 2, -5)
 
     activeObject = objectList[activeObjectIndex]
     # print(objectList[0].name)
@@ -347,6 +354,7 @@ def main():
                     else:
                         activeObjectIndex = activeObjectIndex - 1
                         activeObject = objectList[activeObjectIndex]
+                        print(f'Index: {activeObjectIndex}')
                     print(activeObject.name)
                 if event.key == pygame.K_PERIOD:
                     print("Next pressed")
@@ -355,6 +363,7 @@ def main():
                     else:
                         activeObjectIndex = activeObjectIndex + 1
                         activeObject = objectList[activeObjectIndex]
+                        print(f'Index: {activeObjectIndex}')
                     print(activeObject.name)
                 if event.key == pygame.K_LEFT:
                     print("Left cam pressed")
@@ -406,7 +415,10 @@ def main():
                 if i.exploded == 0:
                     i.move(leftFlag, rightFlag, upFlag, downFlag, spaceFlag, ctrlFlag, shiftFlag)
                 else:
-                    pass
+                    pastObjectList.append(i) # If an object is exploded, add it to the pastObjectList for further rendering
+                    objectList.remove(i) # remove from object list to prevent from switching back to character
+
+                    activeObjectIndex = len(objectList) - 1
 
                 glPopMatrix()
 
@@ -435,6 +447,12 @@ def main():
         glPopMatrix()
 
         for i in objectList:
+            glPushMatrix()
+            i.draw(time)
+            glPopMatrix()
+
+        # Looping through pastObjectList to continue rendering exploded objects
+        for i in pastObjectList:
             glPushMatrix()
             i.draw(time)
             glPopMatrix()
