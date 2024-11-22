@@ -153,6 +153,7 @@ class Character:
             #print(time)
             explodeRate = 1 + ((time - self.explodedTime) * 40)
             glTranslatef(0, explodeRate, 0)
+            glRotatef(30 * explodeRate, 1, 1, 1)
 
         head = Cube("head", 0.5, 0.5, 0.5)
         head.draw()
@@ -180,7 +181,8 @@ class Character:
         elif self.exploded == 1:
             #print(time)
             explodeRate = 0.8 + ((time - self.explodedTime) * 40)
-            glTranslatef(-explodeRate, 0, 0)
+            glTranslatef(-explodeRate, explodeRate, 0)
+            glRotatef(30 * explodeRate, 1, 1, 1)
 
         if self.isMoving == 0:
             glRotatef(np.sin(self.time) * 5, 0, 0, 1)
@@ -199,7 +201,8 @@ class Character:
         elif self.exploded == 1:
             # print(time)
             explodeRate = 0.8 + ((time - self.explodedTime) * 40)
-            glTranslatef(explodeRate, 0, 0)
+            glTranslatef(explodeRate, explodeRate, 0)
+            glRotatef(30 * explodeRate, 1, 1, 1)
 
         if self.isMoving == 0:
             glRotatef(-(np.sin(self.time)) * 5, 0, 0, 1)
@@ -219,7 +222,8 @@ class Character:
         elif self.exploded == 1:
             #print(time)
             explodeRate = 0.3 + ((time - self.explodedTime) * 40)
-            glTranslatef(-explodeRate, -1.3, 0)
+            glTranslatef(-explodeRate, -explodeRate, 0)
+            glRotatef(30 * explodeRate, 1, 1, 1)
 
         if self.isMoving == 1:
             glRotatef(-(np.sin(self.time * 10)) * 20, 1, 0, 0)
@@ -236,7 +240,8 @@ class Character:
         elif self.exploded == 1:
             # print(time)
             explodeRate = 0.3 + ((time - self.explodedTime) * 40)
-            glTranslatef(explodeRate, -1.3, 0)
+            glTranslatef(explodeRate, -explodeRate, 0)
+            glRotatef(30 * explodeRate, 1, 1, 1)
 
         if self.isMoving == 1:
             glRotatef(np.sin(self.time * 10) * 20, 1, 0, 0)
@@ -428,14 +433,14 @@ def main():
                 if explodeFlag == 1:
                     i.explode()
 
-            for j in range(index + 1, len(objectList)):
-                nextObj = objectList[j]
-                range_x = range(i.x_cord - 0.5, i.x_cord + 0.5)
-                range_y = range(i.y_cord - 0.5, i.y_cord + 0.5)
-                range_z = range(i.z_cord - 0.5, i.z_cord + 0.5)
-                # Check if the coordinates match
-                if nextObj.x_cord in range_x and nextObj.y_cord in range_y and nextObj.z_cord in range_z:
-                    print("collision")
+            # for j in range(index + 1, len(objectList)):
+            #     nextObj = objectList[j]
+            #     range_x = range(i.x_cord - 1, i.x_cord + 1)
+            #     range_y = range(i.y_cord - 1, i.y_cord + 1)
+            #     range_z = range(i.z_cord - 1, i.z_cord + 1)
+            #     # Check if the coordinates match
+            #     if nextObj.x_cord in range_x and nextObj.y_cord in range_y and nextObj.z_cord in range_z:
+            #         print("collision")
 
         # check coordinates of every object
         # for i in objectList:
