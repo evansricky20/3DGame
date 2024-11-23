@@ -132,6 +132,7 @@ class Character:
         self.isMoving = 0
         self.direction = 0
         self.speed = 0.05
+        self.collided = False
         objectList.append(self)
 
     # Draw function to render character
@@ -149,14 +150,20 @@ class Character:
         glPushMatrix()
         if self.exploded == 0:
             glTranslatef(0, 1, 0)
+            head = Cube("head", 0.5, 0.5, 0.5)
+            head.draw()
         elif self.exploded == 1:
             #print(time)
-            explodeRate = 1 + ((time - self.explodedTime) * 40)
-            glTranslatef(0, explodeRate, 0)
-            glRotatef(30 * explodeRate, 1, 1, 1)
+            explodeRate = ((self.time - self.explodedTime) * 1)
+            numParts = random.randint(20, 50)
+            for i in range(numParts):
+                glPushMatrix()
+                glTranslatef(random.uniform(-0.2, 0.2) + explodeRate, random.uniform(0.8, 1.2) + explodeRate, random.uniform(-0.2, 0.2) + explodeRate)
+                glRotatef(30 * explodeRate, 1, 1, 1)
+                headParts = Cube(f"head_piece{i}", random.randint(1, 10) / 100, random.randint(1, 10) / 100, random.randint(1, 10) / 100)
+                headParts.draw()
+                glPopMatrix()
 
-        head = Cube("head", 0.5, 0.5, 0.5)
-        head.draw()
         glPopMatrix()
 
         # Creating body of character
@@ -180,7 +187,7 @@ class Character:
             glTranslatef(-0.8, 0, 0)
         elif self.exploded == 1:
             #print(time)
-            explodeRate = 0.8 + ((time - self.explodedTime) * 40)
+            explodeRate = 0.8 + ((time - self.explodedTime) * 80)
             glTranslatef(-explodeRate, explodeRate, 0)
             glRotatef(30 * explodeRate, 1, 1, 1)
 
@@ -200,7 +207,7 @@ class Character:
             glTranslatef(0.8, 0, 0)
         elif self.exploded == 1:
             # print(time)
-            explodeRate = 0.8 + ((time - self.explodedTime) * 40)
+            explodeRate = 0.8 + ((time - self.explodedTime) * 80)
             glTranslatef(explodeRate, explodeRate, 0)
             glRotatef(30 * explodeRate, 1, 1, 1)
 
@@ -221,7 +228,7 @@ class Character:
             glTranslatef(-0.3, -1.3, 0)
         elif self.exploded == 1:
             #print(time)
-            explodeRate = 0.3 + ((time - self.explodedTime) * 40)
+            explodeRate = 0.3 + ((time - self.explodedTime) * 80)
             glTranslatef(-explodeRate, -explodeRate, 0)
             glRotatef(30 * explodeRate, 1, 1, 1)
 
@@ -239,7 +246,7 @@ class Character:
             glTranslatef(0.3, -1.3, 0)
         elif self.exploded == 1:
             # print(time)
-            explodeRate = 0.3 + ((time - self.explodedTime) * 40)
+            explodeRate = 0.3 + ((time - self.explodedTime) * 80)
             glTranslatef(explodeRate, -explodeRate, 0)
             glRotatef(30 * explodeRate, 1, 1, 1)
 
@@ -277,7 +284,6 @@ class Character:
     def explode(self):
         self.exploded = 1
         self.explodedTime = self.time
-
 
 
 
@@ -433,14 +439,23 @@ def main():
                 if explodeFlag == 1:
                     i.explode()
 
-            # for j in range(index + 1, len(objectList)):
-            #     nextObj = objectList[j]
-            #     range_x = range(i.x_cord - 1, i.x_cord + 1)
-            #     range_y = range(i.y_cord - 1, i.y_cord + 1)
-            #     range_z = range(i.z_cord - 1, i.z_cord + 1)
-            #     # Check if the coordinates match
-            #     if nextObj.x_cord in range_x and nextObj.y_cord in range_y and nextObj.z_cord in range_z:
-            #         print("collision")
+            for j in range(index + 1, len(objectList)):
+                nextObj = objectList[j]
+                # range_x = range(i.x_cord - 1, i.x_cord + 1)
+                # range_y = range(i.y_cord - 1, i.y_cord + 1)
+                # range_z = range(i.z_cord - 1, i.z_cord + 1)
+                coordRange = [[i.x_cord - 2.5, i.x_cord + 2.5],
+                              [i.y_cord - 2.5, i.y_cord + 2.5],
+                              [i.z_cord - 0.8, i.z_cord + 0.8]]
+                # Check if the coordinates match
+                if (coordRange[0][1] > nextObj.x_cord > coordRange[0][0]
+                    and coordRange[1][1] > nextObj.y_cord > coordRange[1][0]
+                    and coordRange[2][1] > nextObj.z_cord > coordRange[2][0]):
+                        print(f"Collision between Object: {i.name} and Object: {nextObj.name}")
+                        i.collided = True
+                        nextObj.collided = True
+                        i.explode()
+                        nextObj.explode()
 
         # check coordinates of every object
         # for i in objectList:
