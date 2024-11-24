@@ -154,13 +154,14 @@ class Character:
             head.draw()
         elif self.exploded == 1:
             #print(time)
-            explodeRate = ((self.time - self.explodedTime) * 1)
+            explodeRate = ((self.time - self.explodedTime) * 100)
+            #print(explodeRate)
             numParts = random.randint(20, 50)
             for i in range(numParts):
                 glPushMatrix()
-                glTranslatef(random.uniform(-0.2, 0.2) + explodeRate, random.uniform(0.8, 1.2) + explodeRate, random.uniform(-0.2, 0.2) + explodeRate)
+                glTranslatef(random.uniform(-0.5, 0.5) * explodeRate, random.uniform(1, 2) * explodeRate, random.uniform(-0.2, 0.2) * explodeRate)
                 glRotatef(30 * explodeRate, 1, 1, 1)
-                headParts = Cube(f"head_piece{i}", random.randint(1, 10) / 100, random.randint(1, 10) / 100, random.randint(1, 10) / 100)
+                headParts = Cube(f"head_piece{i}", random.uniform(0.01, 0.1), random.randint(1, 10) / 100, random.randint(1, 10) / 100)
                 headParts.draw()
                 glPopMatrix()
 
@@ -258,6 +259,7 @@ class Character:
 
         glPopMatrix()
 
+
     def move(self, leftFlag, rightFlag, upFlag, downFlag, spaceFlag, ctrlFlag, shiftFlag):
         self.isMoving = leftFlag or rightFlag or upFlag or downFlag
 
@@ -280,6 +282,7 @@ class Character:
             self.y_cord = self.y_cord + objSpeed
         if ctrlFlag == 1:
             self.y_cord = self.y_cord - objSpeed
+
 
     def explode(self):
         self.exploded = 1
@@ -439,23 +442,23 @@ def main():
                 if explodeFlag == 1:
                     i.explode()
 
-            for j in range(index + 1, len(objectList)):
-                nextObj = objectList[j]
-                # range_x = range(i.x_cord - 1, i.x_cord + 1)
-                # range_y = range(i.y_cord - 1, i.y_cord + 1)
-                # range_z = range(i.z_cord - 1, i.z_cord + 1)
-                coordRange = [[i.x_cord - 2.5, i.x_cord + 2.5],
-                              [i.y_cord - 2.5, i.y_cord + 2.5],
-                              [i.z_cord - 0.8, i.z_cord + 0.8]]
-                # Check if the coordinates match
-                if (coordRange[0][1] > nextObj.x_cord > coordRange[0][0]
-                    and coordRange[1][1] > nextObj.y_cord > coordRange[1][0]
-                    and coordRange[2][1] > nextObj.z_cord > coordRange[2][0]):
-                        print(f"Collision between Object: {i.name} and Object: {nextObj.name}")
-                        i.collided = True
-                        nextObj.collided = True
-                        i.explode()
-                        nextObj.explode()
+            # for j in range(index + 1, len(objectList)):
+            #     nextObj = objectList[j]
+            #     # range_x = range(i.x_cord - 1, i.x_cord + 1)
+            #     # range_y = range(i.y_cord - 1, i.y_cord + 1)
+            #     # range_z = range(i.z_cord - 1, i.z_cord + 1)
+            #     coordRange = [[i.x_cord - 2.5, i.x_cord + 2.5],
+            #                   [i.y_cord - 2.5, i.y_cord + 2.5],
+            #                   [i.z_cord - 0.8, i.z_cord + 0.8]]
+            #     # Check if the coordinates match
+            #     if (coordRange[0][1] > nextObj.x_cord > coordRange[0][0]
+            #         and coordRange[1][1] > nextObj.y_cord > coordRange[1][0]
+            #         and coordRange[2][1] > nextObj.z_cord > coordRange[2][0]):
+            #             print(f"Collision between Object: {i.name} and Object: {nextObj.name}")
+            #             i.collided = True
+            #             nextObj.collided = True
+            #             i.explode()
+            #             nextObj.explode()
 
         # check coordinates of every object
         # for i in objectList:
