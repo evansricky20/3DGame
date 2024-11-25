@@ -271,17 +271,29 @@ class Character:
         objSpeed = self.speed * speed_mult
 
         if leftFlag == 1:  # if left key bind is active, then subtract from characters x coordiante to move left
-            self.x_cord = self.x_cord - objSpeed
+            if -10 < self.x_cord:
+                self.x_cord = self.x_cord - objSpeed
+            else:
+                print(f"Hitting barrier x:{self.x_cord}")
         if rightFlag == 1:  # Opposite if moving right
-            self.x_cord = self.x_cord + objSpeed
+            if 10 > self.x_cord:
+                self.x_cord = self.x_cord + objSpeed
+            else:
+                print(f"Hitting barrier x:{self.x_cord}")
         if upFlag == 1:
             self.z_cord = self.z_cord - objSpeed
         if downFlag == 1:
-            self.z_cord = self.z_cord + objSpeed
+            if 5 > self.z_cord:
+                self.z_cord = self.z_cord + objSpeed
+            else:
+                print(f"Hitting barrier z:{self.z_cord}")
         if spaceFlag == 1:
             self.y_cord = self.y_cord + objSpeed
         if ctrlFlag == 1:
-            self.y_cord = self.y_cord - objSpeed
+            if self.y_cord > 1.8:
+                self.y_cord = self.y_cord - objSpeed
+            else:
+                print(f"Hitting barrier y:{self.y_cord}")
 
 
     def explode(self):
@@ -325,7 +337,9 @@ def main():
     #ball = Sphere("ball1", 1, 3, 1, 0)
     #ball2 = Sphere("ball2", 2, -3, 1, 0)
     # ball3 = Sphere("ball3", 1, 4, 2, 0)
-    bob = Character("bob", 0, 2, 0)
+    bob = Character("bob", 0, 1.8, 0)
+    barrier_left = Cube("b_left", 3, 0.5, 90)
+    barrier_right = Cube("b_right", 3, 0.5, 90)
     #bob2 = Character("bob2", -3, 2, -5)
 
     activeObject = objectList[activeObjectIndex]
@@ -464,17 +478,6 @@ def main():
         # for i in objectList:
         #     print(f"Object\nX: {i.x_cord}\nY: {i.y_cord}\nZ: {i.z_cord}\n\n")
 
-        # for i in range(len(objectList)):
-        #     for j in range(i + 1, len(objectList)):
-        #         object1 = objectList[i]
-        #         object2 = objectList[j]
-        #
-        #         if object1.x_cord == object2.x_cord and object1.y_cord == object2.y_cord and object1.z_cord == object2.z_cord:
-        #             print("Collision")
-
-
-
-
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         glEnable(GL_DEPTH_TEST)
 
@@ -482,7 +485,7 @@ def main():
         glColor3f(0.2, 0.5, 0.2)
         glPushMatrix()
         glTranslatef(0, 0, 0)
-        glScalef(200, 0.1, 200)
+        glScalef(200, 0.1, 100)
 
         glBegin(GL_QUADS)
         glVertex3f(-1, 0, -1)
@@ -490,6 +493,18 @@ def main():
         glVertex3f(1, 0, 1)
         glVertex3f(-1, 0, 1)
         glEnd()
+        glPopMatrix()
+
+        glColor3f(0.3, 0.3, 0.3)
+        glPushMatrix()
+        glTranslatef(-11, 1, 0)
+        barrier_left.draw()
+        glPopMatrix()
+
+        glColor3f(0.3, 0.3, 0.3)
+        glPushMatrix()
+        glTranslatef(11, 1, 0)
+        barrier_right.draw()
         glPopMatrix()
 
         for i in objectList:
