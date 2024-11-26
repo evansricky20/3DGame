@@ -7,12 +7,12 @@ from pygame.locals import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 
-objectList = []
+zombieList = []
+bulletList = []
+totalPoints = 0
 
 class Sphere:
     def __init__(self, name, radius, x_cord, y_cord, z_cord):
-        self.explodedTime = 0
-        self.exploded = 0
         self.name = name
         self.radius = radius
         self.x_cord = x_cord
@@ -21,7 +21,7 @@ class Sphere:
         self.time = 0
         self.speed = 0.05
         self.isMoving = 0
-        objectList.append(self)
+        bulletList.append(self)
         self.red = random.uniform(0, 1)
         self.green = random.uniform(0, 1)
         self.blue = random.uniform(0, 1)
@@ -61,10 +61,6 @@ class Sphere:
     def orbit(self, radius, speed):
         self.x_cord = radius * np.cos(speed * self.time)
         self.z_cord = radius * np.sin(speed * self.time)
-
-    def explode(self):
-        self.exploded = 1
-        self.explodedTime = self.time
 
 
 class Cube:
@@ -131,9 +127,9 @@ class Character:
         self.time = 0
         self.isMoving = 0
         self.direction = 0
-        self.speed = 0.05
+        self.speed = 0.03
         self.collided = False
-        objectList.append(self)
+        zombieList.append(self)
 
     # Draw function to render character
     #
@@ -259,51 +255,59 @@ class Character:
 
         glPopMatrix()
 
+    def zombieMove(self):
+        self.isMoving = 1
 
-    def move(self, leftFlag, rightFlag, upFlag, downFlag, spaceFlag, ctrlFlag, shiftFlag):
+        self.z_cord = self.z_cord + 0.03
+
+
+    def move(self, leftFlag, rightFlag, upFlag, downFlag, spaceFlag, ctrlFlag):
         self.isMoving = leftFlag or rightFlag or upFlag or downFlag
-
-        speed_mult = 1
-        if shiftFlag == 1:
-            speed_mult = 3
-        else:
-            pass
-        objSpeed = self.speed * speed_mult
 
         if leftFlag == 1:  # if left key bind is active, then subtract from characters x coordiante to move left
             if -10 < self.x_cord:
-                self.x_cord = self.x_cord - objSpeed
+                self.x_cord = self.x_cord - self.speed
             else:
                 print(f"Hitting barrier x:{self.x_cord}")
         if rightFlag == 1:  # Opposite if moving right
             if 10 > self.x_cord:
-                self.x_cord = self.x_cord + objSpeed
+                self.x_cord = self.x_cord + self.speed
             else:
                 print(f"Hitting barrier x:{self.x_cord}")
         if upFlag == 1:
-            self.z_cord = self.z_cord - objSpeed
+            self.z_cord = self.z_cord - self.speed
         if downFlag == 1:
             if 5 > self.z_cord:
-                self.z_cord = self.z_cord + objSpeed
+                self.z_cord = self.z_cord + self.speed
             else:
                 print(f"Hitting barrier z:{self.z_cord}")
         if spaceFlag == 1:
-            self.y_cord = self.y_cord + objSpeed
+            self.y_cord = self.y_cord + self.speed
         if ctrlFlag == 1:
             if self.y_cord > 1.8:
-                self.y_cord = self.y_cord - objSpeed
+                self.y_cord = self.y_cord - self.speed
             else:
                 print(f"Hitting barrier y:{self.y_cord}")
 
 
     def explode(self):
         self.exploded = 1
+        global totalPoints
+        totalPoints = totalPoints + 1
         self.explodedTime = self.time
 
 
 
-def createPlanet():
-    planet = Sphere(f"planet_{random.randint}", 1, 0, 0, 0)
+def drawText(position, textString):
+    font = pygame.font.Font (None, 64)
+    textSurface = font.render(textString, True, (255,255,255,255), (0,0,0,255))
+    textData = pygame.image.tostring(textSurface, "RGBA", True)
+    glRasterPos3d(*position)
+    glDrawPixels(textSurface.get_width(), textSurface.get_height(), GL_RGBA, GL_UNSIGNED_BYTE, textData)
+
+
+def zombieSpawn(zombieNum):
+    newZombie = Character(f"zombie{zombieNum}", random.randint(-5, 5), 2, random.randint(-5,5))
 
 
 # Main
@@ -330,19 +334,16 @@ def main():
     activeObjectIndex = 0
     # activeObject = objectList[activeObjectIndex]
     explodeFlag = 0
-    bobNum = 10
+    zombieNum = 0
+    next_spawn_time = 5
+    pastZombieList = []
 
-    pastObjectList = []
-
-    #ball = Sphere("ball1", 1, 3, 1, 0)
-    #ball2 = Sphere("ball2", 2, -3, 1, 0)
-    # ball3 = Sphere("ball3", 1, 4, 2, 0)
-    bob = Character("bob", 0, 1.8, 0)
+    bob = Character("bob", 0, 1.8, -10)
     barrier_left = Cube("b_left", 3, 0.5, 90)
     barrier_right = Cube("b_right", 3, 0.5, 90)
-    #bob2 = Character("bob2", -3, 2, -5)
 
-    activeObject = objectList[activeObjectIndex]
+
+    activeObject = zombieList[activeObjectIndex]
     # print(objectList[0].name)
     print(activeObject.x_cord)
 
@@ -376,31 +377,31 @@ def main():
                 if event.key == pygame.K_LSHIFT:
                     # print("SHIFT pressed")
                     shiftFlag = 1
-                if event.key == pygame.K_COMMA:
-                    print("Prev pressed")
-                    if activeObjectIndex == 0:
-                        print("Current index 0, cannot go out of range.")
-                    else:
-                        activeObjectIndex = activeObjectIndex - 1
-                        activeObject = objectList[activeObjectIndex]
-                        print(f'Index: {activeObjectIndex}')
-                    print(activeObject.name)
-                if event.key == pygame.K_PERIOD:
-                    print("Next pressed")
-                    if activeObjectIndex == len(objectList) - 1:
-                        print(f"Current index is {activeObjectIndex}, cannot go out of range.")
-                    else:
-                        activeObjectIndex = activeObjectIndex + 1
-                        activeObject = objectList[activeObjectIndex]
-                        print(f'Index: {activeObjectIndex}')
-                    print(activeObject.name)
+                # if event.key == pygame.K_COMMA:
+                #     print("Prev pressed")
+                #     if activeObjectIndex == 0:
+                #         print("Current index 0, cannot go out of range.")
+                #     else:
+                #         activeObjectIndex = activeObjectIndex - 1
+                #         activeObject = zombieList[activeObjectIndex]
+                #         print(f'Index: {activeObjectIndex}')
+                #     print(activeObject.name)
+                # if event.key == pygame.K_PERIOD:
+                #     print("Next pressed")
+                #     if activeObjectIndex == len(zombieList) - 1:
+                #         print(f"Current index is {activeObjectIndex}, cannot go out of range.")
+                #     else:
+                #         activeObjectIndex = activeObjectIndex + 1
+                #         activeObject = zombieList[activeObjectIndex]
+                #         print(f'Index: {activeObjectIndex}')
+                #     print(activeObject.name)
                 if event.key == pygame.K_LEFT:
                     print("Left cam pressed")
-                if event.key == pygame.K_e:
-                    explodeFlag = 1
-                if event.key == pygame.K_1:
-                    newChar = Character(f"bob{bobNum}", random.randint(-5, 5), 2, random.randint(-5,5))
-                    bobNum = bobNum + 1
+                # if event.key == pygame.K_e:
+                #     explodeFlag = 1
+                # if event.key == pygame.K_1:
+                #     newChar = Character(f"bob{bobNum}", random.randint(-5, 5), 2, random.randint(-5,5))
+                #     bobNum = bobNum + 1
 
             # Using pygame keys to find keys released after being pressed
             # If specified key is released its flag is reset
@@ -435,29 +436,39 @@ def main():
         # gluLookAt(activeObject.x_cord, activeObject.y_cord + 5, activeObject.z_cord + 5,
         #           activeObject.x_cord, activeObject.y_cord, activeObject.z_cord,
         #           0, 1, 0)
+        # gluLookAt(0, 10, 10,
+        #           activeObject.x_cord, activeObject.y_cord, activeObject.z_cord,
+        #           0, 1, 0)
         gluLookAt(0, 10, 10,
-                  activeObject.x_cord, activeObject.y_cord, activeObject.z_cord,
+                  0, 0, 0,
                   0, 1, 0)
 
         time = pygame.time.get_ticks() / 1000  # returns time in miliseconds / 1000 to get seconds
+        #print(f"Current Time: {time}")
+        #print(f"Next Spawn Time: {next_spawn_time}")
+        if time >= next_spawn_time:
+            zombieSpawn(zombieNum)  # Spawn a new zombie
+            zombieNum = zombieNum + 1
+            next_spawn_time = time + random.randint(1, 2)
 
-        for index, i in enumerate(objectList):
-            if i.name == activeObject.name:
+        for index, i in enumerate(zombieList):
+            #if i.name == activeObject.name:
                 glPushMatrix()
                 if i.exploded == 0:
-                    i.move(leftFlag, rightFlag, upFlag, downFlag, spaceFlag, ctrlFlag, shiftFlag)
+                    #i.move(leftFlag, rightFlag, upFlag, downFlag, spaceFlag, ctrlFlag)
+                    i.zombieMove()
                 else:
-                    pastObjectList.append(i)  # Add to pastObjectList
-                    objectList.remove(i)  # Remove from objectList
+                    pastZombieList.append(i)  # Add to pastZombieList
+                    zombieList.remove(i)  # Remove from zombieList
 
-                    activeObjectIndex = len(objectList) - 1
+                    activeObjectIndex = len(zombieList) - 1
                 glPopMatrix()
 
                 if explodeFlag == 1:
                     i.explode()
 
-            # for j in range(index + 1, len(objectList)):
-            #     nextObj = objectList[j]
+            # for j in range(index + 1, len(zombieList)):
+            #     nextObj = zombieList[j]
             #     # range_x = range(i.x_cord - 1, i.x_cord + 1)
             #     # range_y = range(i.y_cord - 1, i.y_cord + 1)
             #     # range_z = range(i.z_cord - 1, i.z_cord + 1)
@@ -475,7 +486,7 @@ def main():
             #             nextObj.explode()
 
         # check coordinates of every object
-        # for i in objectList:
+        # for i in zombieList:
         #     print(f"Object\nX: {i.x_cord}\nY: {i.y_cord}\nZ: {i.z_cord}\n\n")
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
@@ -507,16 +518,18 @@ def main():
         barrier_right.draw()
         glPopMatrix()
 
-        for i in objectList:
+        for i in zombieList:
             glPushMatrix()
             i.draw(time)
             glPopMatrix()
 
-        # Looping through pastObjectList to continue rendering exploded objects
-        for i in pastObjectList:
+        # Looping through pastZombieList to continue rendering exploded objects
+        for i in pastZombieList:
             glPushMatrix()
             i.draw(time)
             glPopMatrix()
+
+        drawText([0,5, -10], f"{totalPoints}")
 
         pygame.display.flip()
         pygame.time.wait(10)
