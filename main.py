@@ -137,7 +137,7 @@ class Character:
 
         # Creating body of character
         # Putting it at y=0 to act as center
-        glColor3f(0.1, 0.9, 0.1)
+        glColor3d(0.21, 0.46, 0.53)
         glPushMatrix()
         if self.exploded == 0:
             glTranslatef(0, 0, 0)
@@ -184,7 +184,7 @@ class Character:
 
         # Creating left leg of character
         # Putting at x = -0.3 and y = -1.3 to go left and below body
-        glColor3d(0.9, 0.1, 0.9)
+        glColor3d(0.76, 0.69, 0.57)
         glPushMatrix()
         if self.exploded == 0:
             glTranslatef(-0.3, -1.3, 0)
@@ -202,7 +202,7 @@ class Character:
 
         # Creating right leg of character
         # Putting at x = 0.3 and y = -1.3 to go right and below body
-        glColor3d(0.9, 0.1, 0.9)
+        glColor3d(0.76, 0.69, 0.57)
         glPushMatrix()
         if self.exploded == 0:
             glTranslatef(0.3, -1.3, 0)
@@ -411,6 +411,7 @@ def main():
     explodeFlag = 0
     zombieNum = 0
     next_spawn_time = 5
+    despawnTime = 10
     pastZombieList = []
     gameFlag = True
     totalPoints = 0
@@ -437,13 +438,13 @@ def main():
                 if event.key == pygame.K_a:
                     # print("Left pressed")
                     leftFlag = 1
-                if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
+                if event.key == pygame.K_d:
                     # print("Right pressed")
                     rightFlag = 1
-                if event.key == pygame.K_UP or event.key == pygame.K_w:
+                if event.key == pygame.K_w:
                     # print("Up pressed")
                     upFlag = 1
-                if event.key == pygame.K_DOWN or event.key == pygame.K_s:
+                if event.key == pygame.K_s:
                     # print("Down pressed")
                     downFlag = 1
                 if event.key == pygame.K_SPACE:
@@ -609,7 +610,6 @@ def main():
         bob.draw(time)
         glPopMatrix()
 
-
         for bullet in bulletList:
             glPushMatrix()
             bullet.shoot()
@@ -622,6 +622,11 @@ def main():
                 bulletList.remove(bullet)
             if bullet.hit:
                 bulletList.remove(bullet)
+
+        for zombie in pastZombieList:
+            if time > despawnTime:
+                pastZombieList.remove(zombie)
+                despawnTime = time + 5
 
         drawText([-2, 9, 0], f"Points: {totalPoints}")
 
