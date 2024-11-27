@@ -9,7 +9,6 @@ from OpenGL.GLU import *
 
 zombieList = []
 bulletList = []
-totalPoints = 0
 
 class Sphere:
     def __init__(self, name, radius, x_cord, y_cord, z_cord):
@@ -19,48 +18,21 @@ class Sphere:
         self.y_cord = y_cord
         self.z_cord = z_cord
         self.time = 0
-        self.speed = 0.05
-        self.isMoving = 0
+        self.speed = 1
         bulletList.append(self)
-        self.red = random.uniform(0, 1)
-        self.green = random.uniform(0, 1)
-        self.blue = random.uniform(0, 1)
+        self.hit = 0
 
     def draw(self, time):
         self.time = time
-        glColor3f(self.red, self.green, self.blue)
+        glColor3f(0.1, 0.1, 0.1)
         glPushMatrix()
         glTranslatef(self.x_cord, self.y_cord, self.z_cord)
         sphere = gluNewQuadric()
         gluSphere(sphere, self.radius, 32, 32)
         glPopMatrix()
 
-    def move(self, leftFlag, rightFlag, upFlag, downFlag, spaceFlag, ctrlFlag, shiftFlag):
-        self.isMoving = leftFlag or rightFlag or upFlag or downFlag
-
-        speed_mult = 1
-        if shiftFlag == 1:
-            speed_mult = 3
-        else:
-            pass
-        objSpeed = self.speed * speed_mult
-
-        if leftFlag == 1:  # if left key bind is active, then subtract from characters x coordiante to move left
-            self.x_cord = self.x_cord - objSpeed
-        if rightFlag == 1:  # Opposite if moving right
-            self.x_cord = self.x_cord + objSpeed
-        if upFlag == 1:
-            self.z_cord = self.z_cord - objSpeed
-        if downFlag == 1:
-            self.z_cord = self.z_cord + objSpeed
-        if spaceFlag == 1:
-            self.y_cord = self.y_cord + objSpeed
-        if ctrlFlag == 1:
-            self.y_cord = self.y_cord - objSpeed
-
-    def orbit(self, radius, speed):
-        self.x_cord = radius * np.cos(speed * self.time)
-        self.z_cord = radius * np.sin(speed * self.time)
+    def shoot(self):
+        self.z_cord = self.z_cord - self.speed
 
 
 class Cube:
@@ -142,7 +114,7 @@ class Character:
 
         # Creating head of character
         # Putting it at y=1 to go above body
-        glColor3f(0.9, 0.1, 0.1)
+        glColor3f(0.27, 0.29, 0.1)
         glPushMatrix()
         if self.exploded == 0:
             glTranslatef(0, 1, 0)
@@ -178,41 +150,34 @@ class Character:
 
         # Creating left arm of character
         # Putting at x=-0.8 and y = 0 to go to left of body
-        glColor3f(0.1, 0.1, 0.9)
+        glColor3f(0.27, 0.29, 0.1)
         glPushMatrix()
         if self.exploded == 0:
-            glTranslatef(-0.8, 0, 0)
+            glTranslatef(-0.8, 0.3, 0)
         elif self.exploded == 1:
             #print(time)
             explodeRate = 0.8 + ((time - self.explodedTime) * 80)
             glTranslatef(-explodeRate, explodeRate, 0)
             glRotatef(30 * explodeRate, 1, 1, 1)
 
-        if self.isMoving == 0:
-            glRotatef(np.sin(self.time) * 5, 0, 0, 1)
-        else:
-            glRotatef(np.sin(self.time * 10) * 20, 1, 0, 0)
+        glRotatef(-90, 1, 0, 0)
         left_arm = Cube("left_arm", 1, 0.5, 0.5)
         left_arm.draw()
         glPopMatrix()
 
         # Creating right arm of character
         # Putting at x=0.8 and y = 0 to go to right of body
-        glColor3f(0.1, 0.1, 0.9)
+        glColor3f(0.27, 0.29, 0.1)
         glPushMatrix()
         if self.exploded == 0:
-            glTranslatef(0.8, 0, 0)
+            glTranslatef(0.8, 0.3, 0)
         elif self.exploded == 1:
             # print(time)
             explodeRate = 0.8 + ((time - self.explodedTime) * 80)
             glTranslatef(explodeRate, explodeRate, 0)
             glRotatef(30 * explodeRate, 1, 1, 1)
 
-        if self.isMoving == 0:
-            glRotatef(-(np.sin(self.time)) * 5, 0, 0, 1)
-        else:
-            # print("Bob is moving")
-            glRotatef(-(np.sin(self.time * 10)) * 20, 1, 0, 0)
+        glRotatef(-90, 1, 0, 0)
         right_arm = Cube("right_arm", 1, 0.5, 0.5)
         right_arm.draw()
         glPopMatrix()
@@ -257,7 +222,6 @@ class Character:
 
     def zombieMove(self):
         self.isMoving = 1
-
         self.z_cord = self.z_cord + 0.03
 
 
@@ -292,10 +256,121 @@ class Character:
 
     def explode(self):
         self.exploded = 1
-        global totalPoints
-        totalPoints = totalPoints + 1
         self.explodedTime = self.time
 
+
+
+class Shooter:
+    def __init__(self, name, x_cord, y_cord, z_cord):
+        self.leftFlag = 0
+        self.rightFlag = 0
+        self.upFlag = 0
+        self.downFlag = 0
+        self.name = name
+        self.x_cord = x_cord
+        self.y_cord = y_cord
+        self.z_cord = z_cord
+        self.time = 0
+        self.isMoving = 0
+        self.speed = 0.1
+        self.lastShot = 0
+        self.fireRate = 0.5
+
+    # Draw function to render character
+    #
+    # Uses Cube class to render body parts
+    def draw(self, time):
+        self.time = time
+        glPushMatrix()
+        glTranslatef(self.x_cord, self.y_cord, self.z_cord)
+
+        # Creating head of character
+        # Putting it at y=1 to go above body
+        glColor3f(0.82, 0.71, 0.55)
+        glPushMatrix()
+        glTranslatef(0, 1, 0)
+        head = Cube("head", 0.5, 0.5, 0.5)
+        head.draw()
+
+        glPopMatrix()
+
+        # Creating body of character
+        # Putting it at y=0 to act as center
+        glColor3f(0.50, 0, 0)
+        glPushMatrix()
+        glTranslatef(0, 0, 0)
+        body = Cube("body", 1.5, 1, 0.5)
+        body.draw()
+        glPopMatrix()
+
+        # Creating left arm of character
+        # Putting at x=-0.8 and y = 0 to go to left of body
+        glColor3f(0.50, 0, 0)
+        glPushMatrix()
+        glTranslatef(-0.8, 0, 0)
+        if self.isMoving == 0:
+            glRotatef(np.sin(self.time) * 5, 0, 0, 1)
+        else:
+            glRotatef(np.sin(self.time * 10) * 20, 1, 0, 0)
+        left_arm = Cube("left_arm", 1, 0.5, 0.5)
+        left_arm.draw()
+        glPopMatrix()
+
+        # Creating right arm of character
+        # Putting at x=0.8 and y = 0 to go to right of body
+        glColor3f(0.50, 0, 0)
+        glPushMatrix()
+        glTranslatef(0.6, 0.5, -0.4)
+        glRotatef(90, 1, 0, 0)
+        right_arm = Cube("right_arm", 1, 0.5, 0.5)
+        right_arm.draw()
+        glPopMatrix()
+
+        # Creating left leg of character
+        # Putting at x = -0.3 and y = -1.3 to go left and below body
+        glColor3d(0.43, 0.56, 0.69)
+        glPushMatrix()
+        glTranslatef(-0.3, -1.3, 0)
+        if self.isMoving == 1:
+            glRotatef(-(np.sin(self.time * 10)) * 20, 1, 0, 0)
+        left_leg = Cube("left_leg", 1, 0.5, 0.5)
+        left_leg.draw()
+        glPopMatrix()
+
+        # Creating right leg of character
+        # Putting at x = 0.3 and y = -1.3 to go right and below body
+        glColor3d(0.43, 0.56, 0.69)
+        glPushMatrix()
+        glTranslatef(0.3, -1.3, 0)
+        if self.isMoving == 1:
+            glRotatef(np.sin(self.time * 10) * 20, 1, 0, 0)
+        right_leg = Cube("right_leg", 1, 0.5, 0.5)
+        right_leg.draw()
+        glPopMatrix()
+
+        glPopMatrix()
+
+
+    def move(self, leftFlag, rightFlag, spaceFlag):
+        self.isMoving = leftFlag or rightFlag
+
+        if leftFlag == 1:  # if left key bind is active, then subtract from characters x coordiante to move left
+            if -10 < self.x_cord:
+                self.x_cord = self.x_cord - self.speed
+            else:
+                print(f"Hitting barrier x:{self.x_cord}")
+        if rightFlag == 1:  # Opposite if moving right
+            if 10 > self.x_cord:
+                self.x_cord = self.x_cord + self.speed
+            else:
+                print(f"Hitting barrier x:{self.x_cord}")
+        if spaceFlag == 1:
+            current_time = time.time()  # Get current time in seconds
+            if current_time - self.lastShot >= self.fireRate:
+                #print("Shooting")
+                bullet = Sphere("bullet", 0.2, self.x_cord + 0.6, 2, 7)
+                bulletList.append(bullet)
+                self.lastShot = current_time
 
 
 def drawText(position, textString):
@@ -307,7 +382,7 @@ def drawText(position, textString):
 
 
 def zombieSpawn(zombieNum):
-    newZombie = Character(f"zombie{zombieNum}", random.randint(-5, 5), 2, random.randint(-5,5))
+    newZombie = Character(f"zombie{zombieNum}", random.randint(-5, 5), 2, -20)
 
 
 # Main
@@ -337,8 +412,11 @@ def main():
     zombieNum = 0
     next_spawn_time = 5
     pastZombieList = []
+    gameFlag = True
+    totalPoints = 0
 
-    bob = Character("bob", 0, 1.8, -10)
+    zombie = Character("zombie", 0, 1.8, -20)
+    bob = Shooter("bob", 0, 1.8, 7)
     barrier_left = Cube("b_left", 3, 0.5, 90)
     barrier_right = Cube("b_right", 3, 0.5, 90)
 
@@ -347,7 +425,7 @@ def main():
     # print(objectList[0].name)
     print(activeObject.x_cord)
 
-    while True:
+    while gameFlag:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -371,12 +449,12 @@ def main():
                 if event.key == pygame.K_SPACE:
                     # print("Space pressed")
                     spaceFlag = 1
-                if event.key == pygame.K_LCTRL:
-                    # print("CTRL pressed")
-                    ctrlFlag = 1
-                if event.key == pygame.K_LSHIFT:
-                    # print("SHIFT pressed")
-                    shiftFlag = 1
+                # if event.key == pygame.K_LCTRL:
+                #     # print("CTRL pressed")
+                #     ctrlFlag = 1
+                # if event.key == pygame.K_LSHIFT:
+                #     # print("SHIFT pressed")
+                #     shiftFlag = 1
                 # if event.key == pygame.K_COMMA:
                 #     print("Prev pressed")
                 #     if activeObjectIndex == 0:
@@ -453,37 +531,25 @@ def main():
 
         for index, i in enumerate(zombieList):
             #if i.name == activeObject.name:
-                glPushMatrix()
-                if i.exploded == 0:
-                    #i.move(leftFlag, rightFlag, upFlag, downFlag, spaceFlag, ctrlFlag)
-                    i.zombieMove()
-                else:
-                    pastZombieList.append(i)  # Add to pastZombieList
-                    zombieList.remove(i)  # Remove from zombieList
+            glPushMatrix()
+            if i.exploded == 0:
+                #i.move(leftFlag, rightFlag, upFlag, downFlag, spaceFlag, ctrlFlag)
+                i.zombieMove()
+            else:
+                pastZombieList.append(i)  # Add to pastZombieList
+                zombieList.remove(i)  # Remove from zombieList
+                totalPoints = totalPoints + 1
 
-                    activeObjectIndex = len(zombieList) - 1
-                glPopMatrix()
+                activeObjectIndex = len(zombieList) - 1
+            glPopMatrix()
 
-                if explodeFlag == 1:
+            if explodeFlag == 1:
+                i.explode()
+
+            for bullet in bulletList:
+                if i.x_cord - 2 < bullet.x_cord < i.x_cord + 2 and i.z_cord - 1 < bullet.z_cord < i.z_cord + 1:
                     i.explode()
-
-            # for j in range(index + 1, len(zombieList)):
-            #     nextObj = zombieList[j]
-            #     # range_x = range(i.x_cord - 1, i.x_cord + 1)
-            #     # range_y = range(i.y_cord - 1, i.y_cord + 1)
-            #     # range_z = range(i.z_cord - 1, i.z_cord + 1)
-            #     coordRange = [[i.x_cord - 2.5, i.x_cord + 2.5],
-            #                   [i.y_cord - 2.5, i.y_cord + 2.5],
-            #                   [i.z_cord - 0.8, i.z_cord + 0.8]]
-            #     # Check if the coordinates match
-            #     if (coordRange[0][1] > nextObj.x_cord > coordRange[0][0]
-            #         and coordRange[1][1] > nextObj.y_cord > coordRange[1][0]
-            #         and coordRange[2][1] > nextObj.z_cord > coordRange[2][0]):
-            #             print(f"Collision between Object: {i.name} and Object: {nextObj.name}")
-            #             i.collided = True
-            #             nextObj.collided = True
-            #             i.explode()
-            #             nextObj.explode()
+                    bullet.hit = True
 
         # check coordinates of every object
         # for i in zombieList:
@@ -518,18 +584,46 @@ def main():
         barrier_right.draw()
         glPopMatrix()
 
-        for i in zombieList:
+        for zombie in zombieList:
             glPushMatrix()
-            i.draw(time)
+            zombie.draw(time)
             glPopMatrix()
+
+            if zombie.z_cord >= 7:
+                gameFlag = False
+                print("Game Over")
+
+            # cleanup when out of view
+            if zombie.z_cord >= 10:
+                zombieList.remove(zombie)
+
 
         # Looping through pastZombieList to continue rendering exploded objects
-        for i in pastZombieList:
+        for zombie in pastZombieList:
             glPushMatrix()
-            i.draw(time)
+            zombie.draw(time)
             glPopMatrix()
 
-        drawText([0,5, -10], f"{totalPoints}")
+        glPushMatrix()
+        bob.move(leftFlag, rightFlag, spaceFlag)
+        bob.draw(time)
+        glPopMatrix()
+
+
+        for bullet in bulletList:
+            glPushMatrix()
+            bullet.shoot()
+            bullet.draw(time)
+            glPopMatrix()
+
+        # cleanup
+        for bullet in bulletList:
+            if bullet.z_cord < -30:
+                bulletList.remove(bullet)
+            if bullet.hit:
+                bulletList.remove(bullet)
+
+        drawText([-2, 9, 0], f"Points: {totalPoints}")
 
         pygame.display.flip()
         pygame.time.wait(10)
