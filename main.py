@@ -118,21 +118,24 @@ class Character:
         glPushMatrix()
         if self.exploded == 0:
             glTranslatef(0, 1, 0)
-            head = Cube("head", 0.5, 0.5, 0.5)
-            head.draw()
+            # head = Cube("head", 0.5, 0.5, 0.5)
+            # head.draw()
         elif self.exploded == 1:
             #print(time)
             explodeRate = ((self.time - self.explodedTime) * 100)
             #print(explodeRate)
-            numParts = random.randint(20, 50)
-            for i in range(numParts):
-                glPushMatrix()
-                glTranslatef(random.uniform(-0.5, 0.5) * explodeRate, random.uniform(1, 2) * explodeRate, random.uniform(-0.2, 0.2) * explodeRate)
-                glRotatef(30 * explodeRate, 1, 1, 1)
-                headParts = Cube(f"head_piece{i}", random.uniform(0.01, 0.1), random.randint(1, 10) / 100, random.randint(1, 10) / 100)
-                headParts.draw()
-                glPopMatrix()
+            # numParts = random.randint(20, 50)
+            # for i in range(numParts):
+            #     glPushMatrix()
+            #     glTranslatef(random.uniform(-0.5, 0.5) * explodeRate, random.uniform(1, 2) * explodeRate, random.uniform(-0.2, 0.2) * explodeRate)
+            #     glRotatef(30 * explodeRate, 1, 1, 1)
+            #     headParts = Cube(f"head_piece{i}", random.uniform(0.01, 0.1), random.randint(1, 10) / 100, random.randint(1, 10) / 100)
+            #     headParts.draw()
+            #     glPopMatrix()
+            glTranslatef(0, explodeRate, 0)
 
+        head = Cube("head", 0.5, 0.5, 0.5)
+        head.draw()
         glPopMatrix()
 
         # Creating body of character
@@ -528,7 +531,14 @@ def main():
         if time >= next_spawn_time:
             zombieSpawn(zombieNum)  # Spawn a new zombie
             zombieNum = zombieNum + 1
-            next_spawn_time = time + random.randint(1, 2)
+            if totalPoints > 20:
+                next_spawn_time = time + random.uniform(0.5, 1.0)
+            elif totalPoints > 30:
+                next_spawn_time = time + 0.5
+            elif totalPoints > 50:
+                next_spawn_time = time + 0.05
+            else:
+                next_spawn_time = time + random.randint(1, 2)
 
         for index, i in enumerate(zombieList):
             #if i.name == activeObject.name:
@@ -620,13 +630,18 @@ def main():
         for bullet in bulletList:
             if bullet.z_cord < -30:
                 bulletList.remove(bullet)
-            if bullet.hit:
+            elif bullet.hit:
                 bulletList.remove(bullet)
 
         for zombie in pastZombieList:
             if time > despawnTime:
                 pastZombieList.remove(zombie)
-                despawnTime = time + 5
+
+                if totalPoints > 20:
+                    despawnTime = next_spawn_time
+                else:
+                    despawnTime = time + 2
+
 
         drawText([-2, 9, 0], f"Points: {totalPoints}")
 
