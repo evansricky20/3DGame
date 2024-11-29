@@ -21,6 +21,7 @@ class Sphere:
         self.speed = 1
         bulletList.append(self)
         self.hit = 0
+        self.damage = 25
 
     def draw(self, time):
         self.time = time
@@ -101,6 +102,7 @@ class Character:
         self.direction = 0
         self.speed = 0.03
         self.collided = False
+        self.health = 200
         zombieList.append(self)
 
     # Draw function to render character
@@ -261,6 +263,15 @@ class Character:
         self.exploded = 1
         self.explodedTime = self.time
 
+    def difficulty(self):
+        if self.time > 60:
+            self.health = 250
+        elif self.time > 30:
+            self.health = 200
+        else:
+            self.health = 100
+
+
 
 
 class Shooter:
@@ -278,6 +289,7 @@ class Shooter:
         self.speed = 0.1
         self.lastShot = 0
         self.fireRate = 0.5
+        self.bulletCount = 0
 
     # Draw function to render character
     #
@@ -371,7 +383,8 @@ class Shooter:
             current_time = time.time()  # Get current time in seconds
             if current_time - self.lastShot >= self.fireRate:
                 #print("Shooting")
-                bullet = Sphere("bullet", 0.2, self.x_cord + 0.6, 2, 7)
+                bullet = Sphere(f"bullet{self.bulletCount}", 0.2, self.x_cord + 0.6, 2, 7)
+                self.bulletCount = self.bulletCount + 1
                 bulletList.append(bullet)
                 self.lastShot = current_time
 
@@ -528,38 +541,66 @@ def main():
         time = pygame.time.get_ticks() / 1000  # returns time in miliseconds / 1000 to get seconds
         #print(f"Current Time: {time}")
         #print(f"Next Spawn Time: {next_spawn_time}")
-        if time >= next_spawn_time:
+        if time >= next_spawn_time and len(zombieList) < 20:
             zombieSpawn(zombieNum)  # Spawn a new zombie
             zombieNum = zombieNum + 1
-            if totalPoints > 20:
-                next_spawn_time = time + random.uniform(0.5, 1.0)
-            elif totalPoints > 30:
-                next_spawn_time = time + 0.5
-            elif totalPoints > 50:
+            if time > 60:
                 next_spawn_time = time + 0.05
+                #print("Spawn time: 60")
+            elif time > 30:
+                next_spawn_time = time + 0.5
+                #print("Spawn time: 30")
+            elif time > 15:
+                next_spawn_time = time + random.uniform(0.5, 1.0)
+                #print("Spawn time: 15")
             else:
                 next_spawn_time = time + random.randint(1, 2)
+                #print("Spawn time: Base")
+                
 
-        for index, i in enumerate(zombieList):
-            #if i.name == activeObject.name:
+        for index, zombie in enumerate(zombieList):
+            #if zombie.name == activeObject.name:
             glPushMatrix()
-            if i.exploded == 0:
-                #i.move(leftFlag, rightFlag, upFlag, downFlag, spaceFlag, ctrlFlag)
-                i.zombieMove()
+            if zombie.exploded == 0:
+                #zombie.move(leftFlag, rightFlag, upFlag, downFlag, spaceFlag, ctrlFlag)
+                zombie.zombieMove()
             else:
-                pastZombieList.append(i)  # Add to pastZombieList
-                zombieList.remove(i)  # Remove from zombieList
+                pastZombieList.append(zombie)  # Add to pastZombieList
+                zombieList.remove(zombie)  # Remove from zombieList
                 totalPoints = totalPoints + 1
 
                 activeObjectIndex = len(zombieList) - 1
             glPopMatrix()
 
             if explodeFlag == 1:
-                i.explode()
+                zombie.explode()
 
             for bullet in bulletList:
-                if i.x_cord - 2 < bullet.x_cord < i.x_cord + 2 and i.z_cord - 1 < bullet.z_cord < i.z_cord + 1:
-                    i.explode()
+                if zombie.x_cord - 2 < bullet.x_cord < zombie.x_cord + 2 and zombie.z_cord - 1 < bullet.z_cord < zombie.z_cord + 1:
+                    #zombie.health = zombie.health-25
+                    if time > 60:
+                        bullet.damage = 12.5
+                        print(f"Bullet dmg: {bullet.damage}")
+                        print(f"Zombie health: {zombie.health}")
+                    elif time > 30:
+                        bullet.damage = 25
+                        print(f"Bullet dmg: {bullet.damage}")
+                        print(f"Zombie health: {zombie.health}")
+                    elif time > 15:
+                        bullet.damage = 50
+                        print(f"Bullet dmg: {bullet.damage}")
+                        print(f"Zombie health: {zombie.health}")
+                    else:
+                        bullet.damage = 100
+                        print(f"Bullet dmg: {bullet.damage}")
+                        print(f"Zombie health: {zombie.health}")
+
+                    if zombie.health <= 0:
+                        zombie.explode()
+
+                    zombie.health = zombie.health - bullet.damage
+                    #print(f"{i.name} health: {i.health}")
+                    #print(bullet.name)
                     bullet.hit = True
 
         # check coordinates of every object
