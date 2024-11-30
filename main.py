@@ -228,7 +228,7 @@ class Character:
 
     def zombieMove(self):
         self.isMoving = 1
-        self.z_cord = self.z_cord + 0.03
+        self.z_cord = self.z_cord + self.speed
 
     def move(self, leftFlag, rightFlag, upFlag, downFlag, spaceFlag, ctrlFlag):
         self.isMoving = leftFlag or rightFlag or upFlag or downFlag
@@ -465,42 +465,12 @@ def main():
                 if event.key == pygame.K_1:
                     if totalPoints > 20:
                         totalPoints = totalPoints - 20
-                        bob.fireRate = bob.fireRate / 2
-                        print(f"Fire Rate: {bob.fireRate}")
+                        while bob.fireRate > 0.125:
+                            bob.fireRate = bob.fireRate / 2
                     else:
                         print("Not enough points")
-
-                # if event.key == pygame.K_LCTRL:
-                #     # print("CTRL pressed")
-                #     ctrlFlag = 1
-                # if event.key == pygame.K_LSHIFT:
-                #     # print("SHIFT pressed")
-                #     shiftFlag = 1
-                # if event.key == pygame.K_COMMA:
-                #     print("Prev pressed")
-                #     if activeObjectIndex == 0:
-                #         print("Current index 0, cannot go out of range.")
-                #     else:
-                #         activeObjectIndex = activeObjectIndex - 1
-                #         activeObject = zombieList[activeObjectIndex]
-                #         print(f'Index: {activeObjectIndex}')
-                #     print(activeObject.name)
-                # if event.key == pygame.K_PERIOD:
-                #     print("Next pressed")
-                #     if activeObjectIndex == len(zombieList) - 1:
-                #         print(f"Current index is {activeObjectIndex}, cannot go out of range.")
-                #     else:
-                #         activeObjectIndex = activeObjectIndex + 1
-                #         activeObject = zombieList[activeObjectIndex]
-                #         print(f'Index: {activeObjectIndex}')
-                #     print(activeObject.name)
                 if event.key == pygame.K_LEFT:
                     print("Left cam pressed")
-                # if event.key == pygame.K_e:
-                #     explodeFlag = 1
-                # if event.key == pygame.K_1:
-                #     newChar = Character(f"bob{bobNum}", random.randint(-5, 5), 2, random.randint(-5,5))
-                #     bobNum = bobNum + 1
 
             # Using pygame keys to find keys released after being pressed
             # If specified key is released its flag is reset
@@ -520,22 +490,8 @@ def main():
                 if event.key == pygame.K_SPACE:
                     # print("Space released")
                     spaceFlag = 0
-                if event.key == pygame.K_LCTRL:
-                    # print("CTRL released")
-                    ctrlFlag = 0
-                # if event.key == pygame.K_LSHIFT:
-                #     # print("SHIFT released")
-                #     shiftFlag = 0
-                # if event.key == pygame.K_e:
-                #     explodeFlag = 0
 
         glLoadIdentity()
-        # gluLookAt(activeObject.x_cord, activeObject.y_cord + 5, activeObject.z_cord + 5,
-        #           activeObject.x_cord, activeObject.y_cord, activeObject.z_cord,
-        #           0, 1, 0)
-        # gluLookAt(0, 10, 10,
-        #           activeObject.x_cord, activeObject.y_cord, activeObject.z_cord,
-        #           0, 1, 0)
         gluLookAt(0, 10, 10,
                   0, 0, 0,
                   0, 1, 0)
@@ -543,21 +499,25 @@ def main():
         time = pygame.time.get_ticks() / 1000  # returns time in miliseconds / 1000 to get seconds
         # print(f"Current Time: {time}")
         # print(f"Next Spawn Time: {next_spawn_time}")
-        if time >= next_spawn_time and len(zombieList) < 20:
+        if time >= next_spawn_time and len(zombieList) < 30:
             zombieSpawn(zombieNum)  # Spawn a new zombie
             zombieNum = zombieNum + 1
-            if time > 60:
+            if time > 90:
+                next_spawn_time = time + 0.01
+                # print("Spawn time: 90")
+            elif time > 60:
                 next_spawn_time = time + 0.05
                 # print("Spawn time: 60")
             elif time > 30:
                 next_spawn_time = time + 0.5
                 # print("Spawn time: 30")
             elif time > 15:
-                next_spawn_time = time + random.uniform(0.5, 1.0)
+                next_spawn_time = time + 1
                 # print("Spawn time: 15")
             else:
-                next_spawn_time = time + random.randint(1, 2)
+                next_spawn_time = time + 1.5
                 # print("Spawn time: Base")
+
 
         for index, zombie in enumerate(zombieList):
             # if zombie.name == activeObject.name:
@@ -576,29 +536,33 @@ def main():
             if explodeFlag == 1:
                 zombie.explode()
 
+            if time > 60:
+                zombie.speed = 0.1
+                print(f"Zombie speed: {zombie.speed}")
+
             for bullet in bulletList:
                 if zombie.x_cord - 2 < bullet.x_cord < zombie.x_cord + 2 and zombie.z_cord - 1 < bullet.z_cord < zombie.z_cord + 1:
                     # zombie.health = zombie.health-25
                     if time > 60:
                         stage = 4
                         bullet.damage = 12.5
-                        print(f"Bullet dmg: {bullet.damage}")
-                        print(f"Zombie health: {zombie.health}")
+                        #print(f"Bullet dmg: {bullet.damage}")
+                        #print(f"Zombie health: {zombie.health}")
                     elif time > 30:
                         stage = 3
                         bullet.damage = 25
-                        print(f"Bullet dmg: {bullet.damage}")
-                        print(f"Zombie health: {zombie.health}")
+                        #print(f"Bullet dmg: {bullet.damage}")
+                        #print(f"Zombie health: {zombie.health}")
                     elif time > 15:
                         stage = 2
                         bullet.damage = 50
-                        print(f"Bullet dmg: {bullet.damage}")
-                        print(f"Zombie health: {zombie.health}")
+                        #print(f"Bullet dmg: {bullet.damage}")
+                        #print(f"Zombie health: {zombie.health}")
                     else:
                         stage = 1
                         bullet.damage = 100
-                        print(f"Bullet dmg: {bullet.damage}")
-                        print(f"Zombie health: {zombie.health}")
+                        #print(f"Bullet dmg: {bullet.damage}")
+                        #print(f"Zombie health: {zombie.health}")
 
                     if zombie.health <= 0:
                         zombie.explode()
@@ -619,7 +583,7 @@ def main():
         glColor3f(0.2, 0.5, 0.2)
         glPushMatrix()
         glTranslatef(0, 0, 0)
-        glScalef(200, 0.1, 100)
+        glScalef(15, 0.1, 100)
 
         glBegin(GL_QUADS)
         glVertex3f(-1, 0, -1)
@@ -682,10 +646,12 @@ def main():
             if time > despawnTime:
                 pastZombieList.remove(zombie)
 
-                if totalPoints > 20:
+                if time > 30:
                     despawnTime = next_spawn_time
                 else:
                     despawnTime = time + 2
+
+        #print(f"Fire Rate: {bob.fireRate}")
 
         drawText([-2, 9, 0], f"Points: {totalPoints}")
         drawText([-12, 9, 0], f"Time: {time}")
