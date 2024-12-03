@@ -1,3 +1,27 @@
+# 3D Zombie Game
+# By Richard Evans R11677817
+#
+# This is a 3D Game that has you defend yourself against waves of zombies. Your objective
+# is to survive as long as you can and rack up as many points as you can.
+#
+# Controls:
+# =========
+# "A" key to move left
+# "D" key to move right
+# "Space" bar to shoot
+# "1" to upgrade weapons fire rate for 20 points
+#
+# Guide:
+# =========
+# When starting the game, an initial zombie will be spawned, after a random interval of time, more
+# zombies will start spawning. There are 4 stages, the first being the first 15 seconds, the second
+# being from 15 to 30 seconds, the third being from 30 to 60 seconds, and the fourth and final being
+# 60 seconds and above. At each stage, zombies because more durable, requiring more shots to take down.
+# At stage 4, zombies will also gain a boost in speed.
+# For 20 points, you can upgrade your weapon pressing "1" on your keyboard. This will increase your rate
+# of fire.
+# Your objective is to survive.
+
 import random
 import pygame
 import time
@@ -6,8 +30,10 @@ from pygame.locals import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 
+
 zombieList = [] # list to store all created zombies
 bulletList = [] # list to store all created bullets
+
 
 # Sphere class
 #
@@ -137,6 +163,7 @@ class Cube:
 
         glPopMatrix()
 
+
 # Zombie class
 #
 # Uses cube class to create zombies
@@ -192,9 +219,9 @@ class Zombie:
         # Putting it at y=0 to act as center
         glColor3f(0.21, 0.46, 0.53)
         glPushMatrix()
-        if self.exploded == 0:
+        if self.exploded == 0: # if not exploded, standard positioning
             glTranslatef(0, 0, 0)
-        elif self.exploded == 1:
+        elif self.exploded == 1: # if exploded, place body on ground to act "dead"
             glTranslatef(0, -1.5, 0)
             glRotate(90, 1, 0, 0)
         body = Cube("body", 1.5, 1, 0.5)
@@ -205,9 +232,9 @@ class Zombie:
         # Putting at x=-0.8 and y = 0 to go to left of body
         glColor3f(0.47, 0.49, 0.3)
         glPushMatrix()
-        if self.exploded == 0:
+        if self.exploded == 0: # if not exploded, standard positioning
             glTranslatef(-0.8, 0.3, 0)
-        elif self.exploded == 1:
+        elif self.exploded == 1: # if exploded, translate and rotate the arm outwards
             # print(time)
             explodeRate = 0.8 + ((time - self.explodedTime) * 80)
             glTranslatef(-explodeRate, explodeRate, 0)
@@ -222,9 +249,9 @@ class Zombie:
         # Putting at x=0.8 and y = 0 to go to right of body
         glColor3f(0.47, 0.49, 0.3)
         glPushMatrix()
-        if self.exploded == 0:
+        if self.exploded == 0: # if not exploded, standard positioning
             glTranslatef(0.8, 0.3, 0)
-        elif self.exploded == 1:
+        elif self.exploded == 1: # if exploded, translate and rotate the arm outwards
             # print(time)
             explodeRate = 0.8 + ((time - self.explodedTime) * 80)
             glTranslatef(explodeRate, explodeRate, 0)
@@ -239,9 +266,9 @@ class Zombie:
         # Putting at x = -0.3 and y = -1.3 to go left and below body
         glColor3d(0.76, 0.69, 0.57)
         glPushMatrix()
-        if self.exploded == 0:
+        if self.exploded == 0: # if not exploded, standard positioning
             glTranslatef(-0.3, -1.3, 0)
-        elif self.exploded == 1:
+        elif self.exploded == 1: # if exploded, translate and rotate the leg outwards
             # print(time)
             explodeRate = 0.3 + ((time - self.explodedTime) * 80)
             glTranslatef(-explodeRate, -explodeRate, 0)
@@ -257,16 +284,16 @@ class Zombie:
         # Putting at x = 0.3 and y = -1.3 to go right and below body
         glColor3d(0.76, 0.69, 0.57)
         glPushMatrix()
-        if self.exploded == 0:
+        if self.exploded == 0: # if not exploded, standard positioning
             glTranslatef(0.3, -1.3, 0)
-        elif self.exploded == 1:
+        elif self.exploded == 1: # if exploded, translate and rotate the leg outwards
             # print(time)
             explodeRate = 0.3 + ((time - self.explodedTime) * 80)
             glTranslatef(explodeRate, -explodeRate, 0)
             glRotatef(30 * explodeRate, 1, 1, 1)
 
-        if self.isMoving == 1:
-            glRotatef(np.sin(self.time * 10) * 20, 1, 0, 0)
+        if self.isMoving == 1: # if moveing flag is set, set slight rotation for leg movement animation
+            glRotatef(np.sin(self.time * 10) * 20, 1, 0, 0) # using sin for leg to move back and forward
         right_leg = Cube("right_leg", 1, 0.5, 0.5)
         right_leg.draw()
         glPopMatrix()
@@ -306,6 +333,7 @@ class Zombie:
         else:
             self.health = 100 # Otherwise, set to base 100
 
+
 # Shooter class
 #
 # Class used to create the character the player will control
@@ -326,6 +354,7 @@ class Shooter:
         self.lastShot = 0
         self.fireRate = 0.5
         self.bulletCount = 0
+
 
     # Draw function to render character
     #
@@ -359,7 +388,7 @@ class Shooter:
         glColor3f(0.50, 0, 0)
         glPushMatrix()
         glTranslatef(-0.8, 0, 0)
-        if self.isMoving == 0:
+        if self.isMoving == 0: # if moving, set arm to swing
             glRotatef(np.sin(self.time) * 5, 0, 0, 1)
         else:
             glRotatef(np.sin(self.time * 10) * 20, 1, 0, 0)
@@ -382,7 +411,7 @@ class Shooter:
         glColor3d(0.43, 0.56, 0.69)
         glPushMatrix()
         glTranslatef(-0.3, -1.3, 0)
-        if self.isMoving == 1:
+        if self.isMoving == 1: # if moving, set leg to move back and forward
             glRotatef(-(np.sin(self.time * 10)) * 20, 1, 0, 0)
         left_leg = Cube("left_leg", 1, 0.5, 0.5)
         left_leg.draw()
@@ -393,7 +422,7 @@ class Shooter:
         glColor3d(0.43, 0.56, 0.69)
         glPushMatrix()
         glTranslatef(0.3, -1.3, 0)
-        if self.isMoving == 1:
+        if self.isMoving == 1: # if moving, set leg to move back and forward
             glRotatef(np.sin(self.time * 10) * 20, 1, 0, 0)
         right_leg = Cube("right_leg", 1, 0.5, 0.5)
         right_leg.draw()
@@ -401,13 +430,14 @@ class Shooter:
 
         glPopMatrix()
 
+
     # move used to set user control movement
     #
     # Takes leftFlag, rightFlag, and spaceFlag input
     def move(self, leftFlag, rightFlag, spaceFlag):
         self.isMoving = leftFlag or rightFlag
 
-        if leftFlag == 1:  # if left key bind is active, then subtract from characters x coordiante to move left
+        if leftFlag == 1:  # if left key bind is active, then subtract from characters x coordinate to move left
             if -10 < self.x_cord:
                 self.x_cord = self.x_cord - self.speed
             else:
@@ -418,7 +448,7 @@ class Shooter:
             else:
                 print(f"Hitting barrier x:{self.x_cord}")
         if spaceFlag == 1:
-            current_time = time.time()  # Get current time in seconds
+            current_time = time.time()
             if current_time - self.lastShot >= self.fireRate:
                 # print("Shooting")
                 bullet = Sphere(f"bullet{self.bulletCount}", 0.2, self.x_cord + 0.6, 2, 7)
@@ -427,7 +457,11 @@ class Shooter:
                 self.lastShot = current_time
 
 
-# Function to render text over opengl rendering
+# drawText function
+#
+# Takes position and text to render as input
+# Function to render text over opengl rendering. Takes posiitoning x, y, and z coordinates as well as text
+# to render
 def drawText(position, textString):
     font = pygame.font.Font(None, 64)
     textSurface = font.render(textString, True, (255, 255, 255, 255), (0, 0, 0, 255))
@@ -497,8 +531,8 @@ def main():
     bob = Shooter("bob", 0, 1.8, 7) # Bob, A.K.A the player
     barrier_left = Cube("b_left", 3, 0.5, 90, barrierTexture) # Left barrier of map
     barrier_right = Cube("b_right", 3, 0.5, 90, barrierTexture) # Right barrier of map
-    ground = Cube("ground", 0.1, 21, 90, ground)
-    skybox = Cube("sky", 100, 150, 100, sky)
+    ground = Cube("ground", 0.1, 21, 90, ground) # Ground of map
+    skybox = Cube("sky", 100, 150, 100, sky) # Sky around map
 
     activeObject = zombieList[activeObjectIndex]
     # print(objectList[0].name)
@@ -563,18 +597,14 @@ def main():
                   0, 0, 0,
                   0, 1, 0)
 
-        time = pygame.time.get_ticks() / 1000  # returns time in miliseconds / 1000 to get seconds
+        time = pygame.time.get_ticks() / 1000  # returns time in milliseconds / 1000 to get seconds
         # print(f"Current Time: {time}")
         # print(f"Next Spawn Time: {next_spawn_time}")
         if time >= next_spawn_time and len(zombieList) < 30:
-
             newZombie = Zombie(f"zombie{zombieNum}", random.randint(-5, 5), 2, -20, zombieFace)
-
             zombieNum = zombieNum + 1
-            if time > 90:
-                next_spawn_time = time + 0.01
-                # print("Spawn time: 90")
-            elif time > 60:
+
+            if time > 60:
                 next_spawn_time = time + 0.05
                 # print("Spawn time: 60")
             elif time > 30:
@@ -590,10 +620,8 @@ def main():
         # looping through zombieList to apply the self moving functionality
         # and check for bullet collision
         for index, zombie in enumerate(zombieList):
-            # if zombie.name == activeObject.name:
             glPushMatrix()
             if zombie.exploded == 0:
-                # zombie.move(leftFlag, rightFlag, upFlag, downFlag, spaceFlag, ctrlFlag)
                 zombie.zombieMove()
             else:
                 pastZombieList.append(zombie)  # add to pastZombieList
@@ -603,21 +631,19 @@ def main():
                 activeObjectIndex = len(zombieList) - 1
             glPopMatrix()
 
-            if explodeFlag == 1:
+            if explodeFlag == 1: # explode zombie is explodeFlag is set
                 zombie.explode()
 
-            if time > 60:
+            if time > 60: # increase zombie speed after 60 seconds
                 zombie.speed = 0.07
                 #print(f"Zombie speed: {zombie.speed}")
 
             # looping through bullet list to check for hits
             for bullet in bulletList:
                 if zombie.x_cord - 2 < bullet.x_cord < zombie.x_cord + 2 and zombie.z_cord - 1 < bullet.z_cord < zombie.z_cord + 1:
-                    # zombie.health = zombie.health-25
                     # if the game time is greater than 60, set the stage to 4 and reduce bullet damage
                     if time > 60:
                         stage = 4
-                        #bullet.damage = 12.5
                         #print(f"Bullet dmg: {bullet.damage}")
                         #print(f"Zombie health: {zombie.health}")
                     # if the game time is greater than 30, set the stage to 3 and reduce bullet damage
@@ -632,7 +658,7 @@ def main():
                         bullet.damage = 50
                         #print(f"Bullet dmg: {bullet.damage}")
                         #print(f"Zombie health: {zombie.health}")
-                    # Otherwise, the initial stage is 1, and bullets do full damange (100)
+                    # Otherwise, the initial stage is 1, and bullets do full damage (100)
                     else:
                         stage = 1
                         bullet.damage = 100
