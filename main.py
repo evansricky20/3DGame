@@ -1,6 +1,3 @@
-# 3D Zombie Game
-# By Richard Evans R11677817
-#
 # This is a 3D Game that has you defend yourself against waves of zombies. Your objective
 # is to survive as long as you can and rack up as many points as you can.
 #
@@ -564,10 +561,10 @@ def main():
                     # print("Space pressed")
                     spaceFlag = 1
                 if event.key == pygame.K_1:
-                    if totalPoints >= 20:
+                    if totalPoints >= 20 and bob.fireRate > 0.1:
                         totalPoints = totalPoints - 20
-                        if bob.fireRate > 0.1:
-                            bob.fireRate = bob.fireRate / 2
+                        bob.fireRate = bob.fireRate / 2
+                        #print(bob.fireRate)
                     else:
                         print("Not enough points")
                 if event.key == pygame.K_LEFT:
